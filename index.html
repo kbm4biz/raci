@@ -75,7 +75,7 @@
             font-weight: bold;
             text-align: right;
         }
-        .gridjs-th, .editable-task {
+        .gridjs-th, .gridjs-td[data-column-id="task"] {
             cursor: pointer;
         }
         /* Role-based colors */
@@ -83,6 +83,7 @@
         .gridjs-td.role-a { background-color: rgba(100, 180, 100, 0.3) !important; }
         .gridjs-td.role-c { background-color: rgba(240, 180, 80, 0.3) !important; }
         .gridjs-td.role-i { background-color: rgba(180, 180, 180, 0.3) !important; }
+        .gridjs-td.role-e { background-color: rgba(156, 39, 176, 0.2) !important; } /* Purple for Executor */
         
         .summary-container {
             border-top: 2px solid var(--muted-border-color);
@@ -190,56 +191,34 @@
             'R': 'R - مسؤول 👤',
             'A': 'A - مساءل 👑',
             'C': 'C - مستشار 💬',
-            'I': 'I - مُطّلع 📨'
+            'I': 'I - مُطّلع 📨',
+            'E': 'E - منفذ 🔨' // Added Executor
         };
-        const roleClasses = { 'R': 'role-r', 'A': 'role-a', 'C': 'role-c', 'I': 'role-i' };
+        const roleClasses = { 'R': 'role-r', 'A': 'role-a', 'C': 'role-c', 'I': 'role-i', 'E': 'role-e' };
 
-        // Function to create column definitions with formatters and attributes
-        const createColumn = (id, name, index) => ({
-            id: id,
-            name: name,
-            sort: true,
-            formatter: (cell, row) => createRaciDropdown(cell, row, index),
-            attributes: (cell, row, col) => {
-                // FIX: Added a robust guard clause to prevent crashes during render.
-                if (row && row.cells && row.cells[col.index] !== undefined) {
-                    const cellValue = row.cells[col.index].data;
-                    if (cellValue && roleClasses[cellValue]) {
-                        return { 'class': 'gridjs-td ' + roleClasses[cellValue] };
-                    }
-                }
-                return { 'class': 'gridjs-td' }; // Return default class
-            }
-        });
-        
         let columns = [
              {
                 id: 'task',
                 name: 'المهمة',
                 width: '250px',
                 sort: true,
-                formatter: (cell, row) => {
-                    const rowIndex = data.findIndex(d => d === row.data);
-                    return gridjs.html(`<div class="editable-task" data-row-index="${rowIndex}">${cell || ''}</div>`);
-                }
-            },
-            createColumn('member1', 'عضو الفريق 1', 1),
-            createColumn('member2', 'عضو الفريق 2', 2),
-            createColumn('member3', 'عضو الفريق 3', 3),
+                // The task column is now editable via the 'cellEdit' event
+             },
+            // The rest of the columns are generated dynamically
         ];
 
         let data = [
-            ['تصميم واجهة المستخدم', 'A', 'R', 'C'],
-            ['تطوير الواجهة الأمامية', 'I', 'A', 'R'],
-            ['تطوير الواجهة الخلفية', 'C', 'I', 'A'],
-            ['النشر على الخادم', 'R', 'A', 'I'],
+            ['تصميم واجهة المستخدم', 'A', 'R', 'C', 'E'],
+            ['تطوير الواجهة الأمامية', 'I', 'A', 'R', 'E'],
+            ['تطوير الواجهة الخلفية', 'C', 'I', 'A', 'R'],
+            ['النشر على الخادم', 'R', 'A', 'I', ''],
         ];
 
         let summaryRoleFilter = 'All';
 
         function createRaciDropdown(cell, row, cellIndex) {
             const rowIndex = data.findIndex(d => d === row.data);
-            const selectedValue = row.cells[cellIndex].data || '';
+            const selectedValue = cell || '';
             let optionsHtml = '';
             for (const [key, value] of Object.entries(raciOptions)) {
                 optionsHtml += `<option value="${key}" ${key === selectedValue ? 'selected' : ''}>${value}</option>`;
@@ -247,6 +226,27 @@
             return gridjs.html(`<select class="raci-select" data-row-index="${rowIndex}" data-cell-index="${cellIndex}">${optionsHtml}</select>`);
         }
         
+        function generateGridColumns() {
+            const staticCols = [{ id: 'task', name: 'المهمة', width: '250px', sort: true, editable: true }];
+            const memberCols = data[0].slice(1).map((_, index) => {
+                const memberIndex = index + 1;
+                return {
+                    id: `member${memberIndex}`,
+                    name: `عضو الفريق ${memberIndex}`,
+                    sort: true,
+                    formatter: (cell, row) => createRaciDropdown(cell, row, memberIndex),
+                    attributes: (cell, row, col) => {
+                        if (cell && roleClasses[cell]) {
+                            return { 'class': 'gridjs-td ' + roleClasses[cell] };
+                        }
+                    }
+                }
+            });
+            return staticCols.concat(memberCols);
+        }
+
+        columns = generateGridColumns();
+
         const grid = new gridjs.Grid({
             columns: columns,
             data: data,
@@ -273,7 +273,7 @@
             const summaryData = {};
 
             columns.slice(1).forEach(col => {
-                summaryData[col.name] = { 'R': [], 'A': [], 'C': [], 'I': [] };
+                summaryData[col.name] = { 'R': [], 'A': [], 'C': [], 'I': [], 'E': [] };
             });
 
             data.forEach(row => {
@@ -337,7 +337,7 @@
         }
 
         document.getElementById('addRow').addEventListener('click', () => {
-            const newRow = Array(columns.length).fill('');
+            const newRow = [`مهمة جديدة ${data.length + 1}`, ...Array(columns.length - 1).fill('')];
             data.push(newRow);
             grid.updateConfig({ data: data }).forceRender();
         });
@@ -345,7 +345,18 @@
         document.getElementById('addMember').addEventListener('click', () => {
             const newMemberIndex = columns.length;
             const newMemberName = `عضو الفريق ${newMemberIndex}`;
-            columns.push(createColumn(`member${newMemberIndex}`, newMemberName, newMemberIndex));
+            const newColumn = {
+                id: `member${newMemberIndex}`,
+                name: newMemberName,
+                sort: true,
+                formatter: (cell, row) => createRaciDropdown(cell, row, newMemberIndex),
+                attributes: (cell, row, col) => {
+                    if (cell && roleClasses[cell]) {
+                        return { 'class': 'gridjs-td ' + roleClasses[cell] };
+                    }
+                }
+            };
+            columns.push(newColumn);
             data.forEach(row => row.push(''));
             grid.updateConfig({ columns: columns, data: data }).forceRender();
         });
@@ -362,66 +373,48 @@
             }
         });
         
-        function makeCellsEditable() {
-            const gridElement = document.getElementById('raci-grid');
-            if (!gridElement) return;
+        // Use Grid.js built-in cell editing
+        grid.on('cellEdit', (newValue, row, col) => {
+            const rowIndex = data.findIndex(d => d === row.data);
+            data[rowIndex][0] = newValue;
+            updateSummaryTable();
+        });
 
-            gridElement.addEventListener('dblclick', (e) => {
-                const taskCell = e.target.closest('.editable-task');
-                const th = e.target.closest('th.gridjs-th');
+        // Custom header editing
+        document.getElementById('raci-grid').addEventListener('dblclick', (e) => {
+            const th = e.target.closest('th.gridjs-th');
+            if (th && !th.querySelector('input')) {
+                const contentDiv = th.querySelector('.gridjs-th-content');
+                if (!contentDiv) return;
+                
+                const colId = th.dataset.columnId;
+                const colIndex = columns.findIndex(c => c.id === colId);
+                if (colIndex === -1 || colIndex === 0) return; // Don't edit task header this way
 
-                if (taskCell && !taskCell.querySelector('input')) {
-                    const rowIndex = parseInt(taskCell.dataset.rowIndex, 10);
-                    if (isNaN(rowIndex) || !data[rowIndex]) return;
+                const currentName = columns[colIndex].name;
+                contentDiv.innerHTML = `<input class="header-input" value="${currentName}" />`;
+                const input = contentDiv.querySelector('input');
+                input.focus();
 
-                    const currentText = data[rowIndex][0];
-                    taskCell.innerHTML = `<input class="header-input" value="${currentText}" />`;
-                    const input = taskCell.querySelector('input');
-                    input.focus();
-
-                    const finishEditing = () => {
-                        const newText = input.value.trim();
-                        data[rowIndex][0] = newText || currentText;
-                        grid.forceRender();
-                    };
-                    input.addEventListener('blur', finishEditing);
-                    input.addEventListener('keydown', (ev) => { if (ev.key === 'Enter') input.blur(); });
-
-                } else if (th && !th.querySelector('input')) {
-                    const contentDiv = th.querySelector('.gridjs-th-content');
-                    if (!contentDiv) return;
-                    
-                    const colId = th.dataset.columnId;
-                    const colIndex = columns.findIndex(c => c.id === colId);
-                    if (colIndex === -1) return;
-
-                    const currentName = columns[colIndex].name;
-                    contentDiv.innerHTML = `<input class="header-input" value="${currentName}" />`;
-                    const input = contentDiv.querySelector('input');
-                    input.focus();
-
-                    const finishEditing = () => {
-                        const newName = input.value.trim();
-                        columns[colIndex].name = newName || currentName;
-                        grid.updateConfig({ columns: columns }).forceRender();
-                    };
-                    input.addEventListener('blur', finishEditing);
-                    input.addEventListener('keydown', ev => { if (ev.key === 'Enter') ev.target.blur(); });
-                }
-            });
-        }
+                const finishEditing = () => {
+                    const newName = input.value.trim();
+                    columns[colIndex].name = newName || currentName;
+                    grid.updateConfig({ columns: columns }).forceRender();
+                };
+                input.addEventListener('blur', finishEditing);
+                input.addEventListener('keydown', ev => { if (ev.key === 'Enter') ev.target.blur(); });
+            }
+        });
 
         function onReady() {
             renderSummaryFilters();
             updateSummaryTable();
-            makeCellsEditable();
         }
 
         grid.on('ready', onReady);
         grid.on('afterRender', () => {
             renderSummaryFilters();
             updateSummaryTable();
-            makeCellsEditable();
         });
         
         const exportModal = document.getElementById('export-modal');
@@ -462,6 +455,13 @@
                 }
             `;
 
+            const viewOnlyData = data.map(row => {
+                return row.map((cell, index) => {
+                    if (index === 0) return cell;
+                    return raciOptions[cell] || '';
+                });
+            });
+
             const fileContent = `
 <!DOCTYPE html>
 <html lang="ar" dir="rtl" data-theme="light">
@@ -483,7 +483,7 @@
     </main>
     <script src="https://unpkg.com/gridjs/dist/gridjs.umd.js"><\/script>
     <script>
-        const viewOnlyData = ${JSON.stringify(data)};
+        const viewOnlyData = ${JSON.stringify(viewOnlyData)};
         const viewOnlyColumns = ${JSON.stringify(serializableColumns)};
         const roleClasses = ${JSON.stringify(roleClasses)};
 
@@ -496,8 +496,9 @@
                     attributes: (cell, row, c) => {
                         if (row && row.cells && row.cells[c.index]) {
                             const cellValue = row.cells[c.index].data;
-                            if (cellValue && roleClasses[cellValue]) {
-                                return { 'class': 'gridjs-td ' + roleClasses[cellValue] };
+                            const roleKey = cellValue ? cellValue.charAt(0) : '';
+                            if (roleKey && roleClasses[roleKey]) {
+                                return { 'class': 'gridjs-td ' + roleClasses[roleKey] };
                             }
                         }
                     }
