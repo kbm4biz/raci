@@ -75,7 +75,7 @@
             font-weight: bold;
             text-align: right;
         }
-        .gridjs-th, .gridjs-td:first-child {
+        .gridjs-th, .editable-task {
             cursor: pointer;
         }
         /* Role-based colors */
@@ -187,7 +187,7 @@
     <script>
         const raciOptions = {
             '': 'اختر...',
-            'R': 'R - مسؤول �',
+            'R': 'R - مسؤول 👤',
             'A': 'A - مساءل 👑',
             'C': 'C - مستشار 💬',
             'I': 'I - مُطّلع 📨'
@@ -198,15 +198,17 @@
         const createColumn = (id, name, index) => ({
             id: id,
             name: name,
-            sort: true, // Enable sorting for all member columns
+            sort: true,
             formatter: (cell, row) => createRaciDropdown(cell, row, index),
             attributes: (cell, row, col) => {
-                // FIX: Added a guard clause to prevent the "Cannot read properties of null" error.
-                if (!row || !row.cells || !row.cells[col.index]) return { 'class': 'gridjs-td' };
-                const cellValue = row.cells[col.index].data;
-                if (cellValue && roleClasses[cellValue]) {
-                    return { 'class': 'gridjs-td ' + roleClasses[cellValue] };
+                // FIX: Added a robust guard clause to prevent crashes during render.
+                if (row && row.cells && row.cells[col.index] !== undefined) {
+                    const cellValue = row.cells[col.index].data;
+                    if (cellValue && roleClasses[cellValue]) {
+                        return { 'class': 'gridjs-td ' + roleClasses[cellValue] };
+                    }
                 }
+                return { 'class': 'gridjs-td' }; // Return default class
             }
         });
         
@@ -218,8 +220,7 @@
                 sort: true,
                 formatter: (cell, row) => {
                     const rowIndex = data.findIndex(d => d === row.data);
-                    // Use a wrapper div to attach a reliable index for editing
-                    return gridjs.html(`<div class="editable-task" data-row-index="${rowIndex}">${cell}</div>`);
+                    return gridjs.html(`<div class="editable-task" data-row-index="${rowIndex}">${cell || ''}</div>`);
                 }
             },
             createColumn('member1', 'عضو الفريق 1', 1),
@@ -267,6 +268,7 @@
         
         function updateSummaryTable() {
             const summaryGrid = document.getElementById('summary-grid');
+            if (!summaryGrid) return;
             summaryGrid.innerHTML = '';
             const summaryData = {};
 
@@ -315,6 +317,7 @@
 
         function renderSummaryFilters() {
             const filtersContainer = document.getElementById('summary-filters');
+            if (!filtersContainer) return;
             filtersContainer.innerHTML = '';
             const allRoles = { 'All': 'الكل', ...raciOptions };
             delete allRoles[''];
@@ -359,78 +362,68 @@
             }
         });
         
-        // --- Editable Cells and Headers ---
-        document.getElementById('raci-grid').addEventListener('dblclick', (e) => {
-            // Handle task editing
-            const taskCell = e.target.closest('.editable-task');
-            if (taskCell && !taskCell.querySelector('input')) {
-                const rowIndex = parseInt(taskCell.dataset.rowIndex, 10);
-                if (isNaN(rowIndex) || !data[rowIndex]) return;
+        function makeCellsEditable() {
+            const gridElement = document.getElementById('raci-grid');
+            if (!gridElement) return;
 
-                const currentText = data[rowIndex][0];
-                const input = document.createElement('input');
-                input.className = 'header-input';
-                input.value = currentText;
-                taskCell.innerHTML = '';
-                taskCell.appendChild(input);
-                input.focus();
+            gridElement.addEventListener('dblclick', (e) => {
+                const taskCell = e.target.closest('.editable-task');
+                const th = e.target.closest('th.gridjs-th');
 
-                const finishEditing = () => {
-                    const newText = input.value.trim();
-                    if (newText) {
-                        data[rowIndex][0] = newText;
-                    }
-                    grid.forceRender();
-                };
-                input.addEventListener('blur', finishEditing);
-                input.addEventListener('keydown', (ev) => { if (ev.key === 'Enter') input.blur(); });
-                return;
-            }
+                if (taskCell && !taskCell.querySelector('input')) {
+                    const rowIndex = parseInt(taskCell.dataset.rowIndex, 10);
+                    if (isNaN(rowIndex) || !data[rowIndex]) return;
 
-            // Handle header editing
-            const th = e.target.closest('th.gridjs-th');
-            if (th && !th.querySelector('input')) {
-                const contentDiv = th.querySelector('.gridjs-th-content');
-                if (!contentDiv) return;
+                    const currentText = data[rowIndex][0];
+                    taskCell.innerHTML = `<input class="header-input" value="${currentText}" />`;
+                    const input = taskCell.querySelector('input');
+                    input.focus();
 
-                const colId = th.dataset.columnId;
-                const colIndex = columns.findIndex(c => c.id === colId);
-                if (colIndex === -1 || colIndex === 0) return;
+                    const finishEditing = () => {
+                        const newText = input.value.trim();
+                        data[rowIndex][0] = newText || currentText;
+                        grid.forceRender();
+                    };
+                    input.addEventListener('blur', finishEditing);
+                    input.addEventListener('keydown', (ev) => { if (ev.key === 'Enter') input.blur(); });
 
-                const currentName = columns[colIndex].name;
-                const input = document.createElement('input');
-                input.className = 'header-input';
-                input.value = currentName;
-                contentDiv.innerHTML = '';
-                contentDiv.appendChild(input);
-                input.focus();
+                } else if (th && !th.querySelector('input')) {
+                    const contentDiv = th.querySelector('.gridjs-th-content');
+                    if (!contentDiv) return;
+                    
+                    const colId = th.dataset.columnId;
+                    const colIndex = columns.findIndex(c => c.id === colId);
+                    if (colIndex === -1) return;
 
-                const finishEditing = () => {
-                    const newName = input.value.trim();
-                    if (newName) {
-                        columns[colIndex].name = newName;
+                    const currentName = columns[colIndex].name;
+                    contentDiv.innerHTML = `<input class="header-input" value="${currentName}" />`;
+                    const input = contentDiv.querySelector('input');
+                    input.focus();
+
+                    const finishEditing = () => {
+                        const newName = input.value.trim();
+                        columns[colIndex].name = newName || currentName;
                         grid.updateConfig({ columns: columns }).forceRender();
-                    } else {
-                         grid.forceRender();
-                    }
-                };
-                input.addEventListener('blur', finishEditing);
-                input.addEventListener('keydown', ev => { if (ev.key === 'Enter') ev.target.blur(); });
-            }
-        });
+                    };
+                    input.addEventListener('blur', finishEditing);
+                    input.addEventListener('keydown', ev => { if (ev.key === 'Enter') ev.target.blur(); });
+                }
+            });
+        }
 
         function onReady() {
             renderSummaryFilters();
             updateSummaryTable();
+            makeCellsEditable();
         }
 
         grid.on('ready', onReady);
         grid.on('afterRender', () => {
             renderSummaryFilters();
             updateSummaryTable();
+            makeCellsEditable();
         });
         
-        // --- Export Logic ---
         const exportModal = document.getElementById('export-modal');
         document.getElementById('show-export-modal').addEventListener('click', () => exportModal.showModal());
         document.getElementById('close-modal').addEventListener('click', () => exportModal.close());
@@ -447,19 +440,25 @@
             const watermarkText = exportType === 'draft' ? 'مسودة' : 'نهائي';
             const watermarkColor = exportType === 'draft' ? 'rgba(255, 165, 0, 0.2)' : 'rgba(0, 128, 0, 0.2)';
 
-            const watermarkStyle = `
+            const exportStyles = `
+                ${document.querySelector('style').innerHTML}
                 body::after {
                     content: '${watermarkText}';
                     position: fixed;
                     top: 50%;
                     left: 50%;
                     transform: translate(-50%, -50%) rotate(-45deg);
-                    font-size: 10rem;
+                    font-size: 10vw;
                     color: ${watermarkColor};
                     pointer-events: none;
                     z-index: 9999;
                     font-weight: bold;
                     opacity: 0.8;
+                }
+                main.container { max-width: none; }
+                .grid-container {
+                    width: 100%;
+                    overflow-x: auto;
                 }
             `;
 
@@ -475,7 +474,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/@picocss/pico@latest/css/pico.min.css">
     <link href="https://unpkg.com/gridjs/dist/theme/mermaid.min.css" rel="stylesheet" />
-    <style>${document.querySelector('style').innerHTML}\n${watermarkStyle}</style>
+    <style>${exportStyles}</style>
 </head>
 <body>
     <main class="container">
@@ -495,10 +494,11 @@
                     name: col.name,
                     sort: col.sort,
                     attributes: (cell, row, c) => {
-                        if (!row) return;
-                        const cellValue = row.cells[c.index].data;
-                        if (cellValue && roleClasses[cellValue]) {
-                            return { 'class': 'gridjs-td ' + roleClasses[cellValue] };
+                        if (row && row.cells && row.cells[c.index]) {
+                            const cellValue = row.cells[c.index].data;
+                            if (cellValue && roleClasses[cellValue]) {
+                                return { 'class': 'gridjs-td ' + roleClasses[cellValue] };
+                            }
                         }
                     }
                 }
@@ -514,7 +514,7 @@
             const blob = new Blob([fileContent.trim()], { type: 'text/html' });
             const link = document.createElement('a');
             link.href = URL.createObjectURL(blob);
-            link.download = `${projectName.replace(/\s/g, '_') || 'raci-chart'}-${exportType}.html`;
+            link.download = `${(projectName.replace(/\s/g, '_') || 'raci-chart')}-${exportType}.html`;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
@@ -522,4 +522,3 @@
     </script>
 </body>
 </html>
-�
