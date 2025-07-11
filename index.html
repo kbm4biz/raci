@@ -3,17 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>أداة مخطط RACI بسيطة</title>
+    <title>أداة مخطط RACI متقدمة</title>
     
     <!-- Google Fonts for Arabic -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
     
     <!-- Pico.css for modern styling -->
     <link rel="stylesheet" href="https://unpkg.com/@picocss/pico@latest/css/pico.min.css">
     
-    <!-- Custom Styles for a better look and feel -->
+    <!-- html2canvas for PNG export -->
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    
     <style>
         :root {
             --role-r: rgba(85, 150, 200, 0.3);
@@ -21,41 +23,68 @@
             --role-c: rgba(240, 180, 80, 0.3);
             --role-i: rgba(180, 180, 180, 0.3);
             --role-e: rgba(156, 39, 176, 0.2);
-            --primary: #007bff;
-            --primary-hover: #0069d9;
-            --success: #28a745;
-            --success-hover: #218838;
+            --primary: #4361ee;
+            --primary-light: #4895ef;
+            --success: #2ecc71;
+            --warning: #f39c12;
+            --danger: #e74c3c;
+            --dark: #2c3e50;
+            --light: #f8f9fa;
         }
         
         body {
             font-family: 'Cairo', sans-serif;
             padding: 1rem;
-            background-color: #f8f9fa;
-            background-image: linear-gradient(120deg, #fdfbfb 0%, #ebedee 100%);
+            background-color: #f0f2f5;
+            background-image: linear-gradient(135deg, #f5f7fa 0%, #e4edf5 100%);
+            min-height: 100vh;
         }
         
         main.container {
             max-width: 100%;
-            margin: auto;
+            margin: 1rem auto;
             padding: 2rem;
             border-radius: 1rem;
-            box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
             background-color: white;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header-section {
+            background: linear-gradient(120deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 0.8rem;
+            margin-bottom: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header-section::before {
+            content: "";
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%);
+            transform: rotate(30deg);
         }
         
         h1, h2 {
             text-align: center;
             margin-bottom: 1.5rem;
-            color: #2c3e50;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+            color: white;
+            position: relative;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
         
-        .header-section {
-            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
-            color: white;
-            padding: 1.5rem;
-            border-radius: 0.5rem;
-            margin-bottom: 2rem;
+        h2 {
+            color: var(--dark);
+            margin-top: 2rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--primary);
         }
         
         .grid-container, .summary-container {
@@ -71,7 +100,7 @@
             justify-content: center;
         }
         
-        button {
+        .btn {
             cursor: pointer;
             transition: all 0.3s ease;
             min-width: 120px;
@@ -82,32 +111,50 @@
             text-transform: uppercase;
             font-size: 0.85rem;
             padding: 0.75rem 1.5rem;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
         
-        button:hover {
+        .btn:hover {
             transform: translateY(-3px);
             box-shadow: 0 7px 14px rgba(50, 50, 93, 0.1), 0 3px 6px rgba(0, 0, 0, 0.08);
         }
         
-        #show-export-modal {
+        .btn i {
+            font-size: 1.1em;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+        
+        .btn-success {
             background-color: var(--success);
-            border-color: var(--success);
             color: white;
         }
         
-        #show-export-modal:hover {
-            background-color: var(--success-hover);
-        }
-        
-        #save-data {
-            background-color: #6c757d;
-            border-color: #6c757d;
+        .btn-warning {
+            background-color: var(--warning);
             color: white;
         }
         
-        #reset-data {
-            background-color: #dc3545;
-            border-color: #dc3545;
+        .btn-danger {
+            background-color: var(--danger);
+            color: white;
+        }
+        
+        .btn-outline {
+            background-color: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+        }
+        
+        .btn-outline:hover {
+            background-color: var(--primary);
             color: white;
         }
         
@@ -115,10 +162,22 @@
             width: 100%;
             overflow-x: auto;
             margin-top: 1.5rem;
-            border: 1px solid #dee2e6;
-            border-radius: 0.5rem;
-            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            border: 1px solid #e1e5eb;
+            border-radius: 0.8rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
             background: white;
+            position: relative;
+        }
+        
+        .raci-matrix::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary) 0%, var(--primary-light) 100%);
+            border-radius: 4px 4px 0 0;
         }
         
         table {
@@ -128,39 +187,44 @@
         }
         
         th, td {
-            padding: 0.75rem;
+            padding: 0.9rem;
             text-align: center;
-            border: 1px solid #dee2e6;
-            transition: background-color 0.2s ease;
+            border: 1px solid #e1e5eb;
+            transition: all 0.2s ease;
         }
         
         th {
-            background-color: #f1f3f5;
+            background-color: #f8fafc;
             font-weight: bold;
             position: sticky;
             top: 0;
             z-index: 10;
+            color: var(--dark);
+            font-size: 1.05rem;
         }
         
         .task-header {
             min-width: 250px;
-            background-color: #e9ecef;
+            background-color: #f1f5f9;
+            font-weight: 700;
+            color: var(--dark);
         }
         
         .member-header {
-            min-width: 150px;
+            min-width: 160px;
             cursor: pointer;
             position: relative;
+            transition: background-color 0.2s;
         }
         
         .member-header:hover {
-            background-color: #e2e6ea;
+            background-color: #edf2f7;
         }
         
         .member-header.sort-asc::after {
             content: '↑';
             position: absolute;
-            left: 5px;
+            left: 8px;
             top: 50%;
             transform: translateY(-50%);
             font-weight: bold;
@@ -170,7 +234,7 @@
         .member-header.sort-desc::after {
             content: '↓';
             position: absolute;
-            left: 5px;
+            left: 8px;
             top: 50%;
             transform: translateY(-50%);
             font-weight: bold;
@@ -179,40 +243,45 @@
         
         .task-cell {
             text-align: right;
-            padding: 0.75rem;
+            padding: 0.9rem;
+            background-color: #f8fafc;
         }
         
         .task-input {
             width: 100%;
-            padding: 0.5rem;
-            border: 1px solid #ced4da;
-            border-radius: 0.25rem;
+            padding: 0.7rem;
+            border: 1px solid #dbe4f0;
+            border-radius: 0.4rem;
             font-family: inherit;
-            font-size: inherit;
-            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: white;
+            font-weight: 600;
+            color: var(--dark);
         }
         
         .task-input:focus {
             border-color: var(--primary);
-            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15);
             outline: none;
         }
         
         .raci-select {
             width: 100%;
-            padding: 0.5rem;
-            border-radius: 0.25rem;
-            border: 1px solid #ced4da;
-            background-color: transparent;
+            padding: 0.7rem;
+            border-radius: 0.4rem;
+            border: 1px solid #dbe4f0;
+            background-color: white;
             font-family: inherit;
-            font-size: inherit;
+            font-size: 0.95rem;
             cursor: pointer;
             transition: all 0.3s ease;
+            font-weight: 500;
         }
         
         .raci-select:focus {
             border-color: var(--primary);
-            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15);
             outline: none;
         }
         
@@ -224,23 +293,24 @@
         .role-e { background-color: var(--role-e) !important; }
         
         .summary-container {
-            border-top: 2px solid #dee2e6;
-            padding-top: 1.5rem;
-            margin-top: 2rem;
+            border-top: 2px solid #e1e5eb;
+            padding-top: 1.8rem;
+            margin-top: 2.5rem;
         }
         
         .summary-filters {
             display: flex;
             flex-wrap: wrap;
-            gap: 0.5rem;
+            gap: 0.7rem;
             justify-content: center;
-            margin-bottom: 1.5rem;
+            margin-bottom: 1.8rem;
         }
         
         .summary-filters button {
-            font-size: 0.9em;
-            padding: 0.5rem 1rem;
+            font-size: 0.95em;
+            padding: 0.6rem 1.2rem;
             min-width: auto;
+            border-radius: 30px;
         }
         
         .summary-filters button.active {
@@ -251,42 +321,70 @@
         
         .summary-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 1.5rem;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 1.8rem;
         }
         
         .summary-member-card {
-            border: 1px solid #dee2e6;
-            border-radius: 8px;
-            padding: 1rem;
+            border: 1px solid #e1e5eb;
+            border-radius: 0.8rem;
+            padding: 1.5rem;
             background-color: white;
-            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.04);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .summary-member-card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 5px;
+            height: 100%;
+            background: linear-gradient(to bottom, var(--primary), var(--primary-light));
         }
         
         .summary-member-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+            box-shadow: 0 12px 25px rgba(0, 0, 0, 0.08);
         }
         
         .summary-member-card h4 {
             margin-top: 0;
-            border-bottom: 2px solid var(--primary);
-            padding-bottom: 0.5rem;
-            color: #2c3e50;
+            margin-bottom: 1.2rem;
+            padding-bottom: 0.7rem;
+            border-bottom: 2px solid #e1e5eb;
+            color: var(--dark);
+            font-size: 1.3rem;
+            position: relative;
+        }
+        
+        .summary-member-card h4::after {
+            content: "";
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 50px;
+            height: 3px;
+            background: var(--primary);
+            border-radius: 3px;
         }
         
         .summary-member-card ul {
-            padding-right: 20px;
+            padding-right: 25px;
             margin-bottom: 0;
+            list-style: none;
         }
         
         .summary-member-card li {
-            margin-bottom: 0.5rem;
-            padding: 0.25rem 0;
-            border-bottom: 1px dashed #e9ecef;
+            margin-bottom: 0.7rem;
+            padding: 0.4rem 0;
+            border-bottom: 1px dashed #e1e5eb;
             position: relative;
-            padding-right: 20px;
+            padding-right: 25px;
+            font-size: 1.05rem;
         }
         
         .summary-member-card li::before {
@@ -294,64 +392,117 @@
             position: absolute;
             right: 0;
             color: var(--primary);
-            font-size: 1.2em;
+            font-size: 1.8em;
+            line-height: 0.8;
         }
         
         /* Export Modal Styles */
         dialog {
             width: 90%;
-            max-width: 400px;
-            border-radius: 8px;
-            border: 1px solid #dee2e6;
-            padding: 1.5rem;
+            max-width: 500px;
+            border-radius: 1rem;
+            border: 1px solid #e1e5eb;
+            padding: 2rem;
             background-color: white;
             box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
         }
         
         dialog::backdrop {
             background: rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(3px);
+            backdrop-filter: blur(5px);
         }
         
-        dialog .grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1rem;
-            margin-bottom: 1.5rem;
-        }
-        
-        .member-header-input {
-            width: 100%;
-            padding: 0.5rem;
-            border: 2px solid var(--primary);
-            border-radius: 0.25rem;
-            font-family: inherit;
-            font-weight: bold;
+        dialog h3 {
             text-align: center;
+            color: var(--dark);
+            margin-top: 0;
+        }
+        
+        .export-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 1.2rem;
+            margin: 1.5rem 0;
+        }
+        
+        .export-option {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 1.5rem 1rem;
+            border-radius: 0.8rem;
+            background: #f8fafc;
+            border: 2px solid #e1e5eb;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+        
+        .export-option:hover {
+            border-color: var(--primary);
+            background: #edf2ff;
+            transform: translateY(-3px);
+        }
+        
+        .export-option i {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            color: var(--primary);
+        }
+        
+        .export-option h4 {
+            margin: 0;
+            color: var(--dark);
+            font-size: 1.1rem;
+        }
+        
+        .export-option p {
+            margin: 0.5rem 0 0;
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+        
+        .modal-footer {
+            display: flex;
+            justify-content: center;
+            margin-top: 1.5rem;
         }
         
         .notification {
             position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 15px 25px;
-            border-radius: 8px;
+            top: 25px;
+            right: 25px;
+            padding: 18px 30px;
+            border-radius: 0.8rem;
             background-color: var(--success);
             color: white;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
             transform: translateX(200%);
-            transition: transform 0.3s ease;
+            transition: transform 0.4s ease;
             z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 500;
+            font-size: 1.05rem;
+        }
+        
+        .notification i {
+            font-size: 1.5rem;
         }
         
         .notification.show {
             transform: translateX(0);
         }
         
+        .notification.error {
+            background-color: var(--danger);
+        }
+        
         /* Responsive adjustments */
         @media (max-width: 768px) {
             main.container {
-                padding: 1rem;
+                padding: 1.2rem;
             }
             
             .controls {
@@ -359,7 +510,7 @@
                 align-items: center;
             }
             
-            button {
+            .btn {
                 width: 100%;
             }
             
@@ -368,28 +519,44 @@
             }
             
             .header-section {
-                padding: 1rem;
+                padding: 1.2rem;
             }
             
             h1 {
                 font-size: 1.8rem;
             }
+            
+            .export-options {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* Icons */
+        .icon {
+            display: inline-block;
+            width: 1em;
+            height: 1em;
+            stroke-width: 0;
+            stroke: currentColor;
+            fill: currentColor;
         }
     </style>
 </head>
 <body>
     <main class="container">
         <div class="header-section">
-            <h1>أداة مخطط RACI</h1>
-            <p style="text-align: center; opacity: 0.9;">حدد الأدوار والمسؤوليات لمهام مشروعك بطريقة تفاعلية</p>
+            <h1>أداة مخطط RACI المتقدمة</h1>
+            <p style="text-align: center; opacity: 0.9; font-size: 1.1rem;">حدد الأدوار والمسؤوليات لمهام مشروعك بطريقة تفاعلية</p>
         </div>
         
-        <div class="grid">
-            <div style="display: flex; gap: 10px; align-items: center;">
-                <input type="text" id="projectName" placeholder="أدخل اسم المشروع أو القائد" class="input" style="flex: 1;">
-                <button id="save-data" class="btn">حفظ البيانات</button>
-                <button id="reset-data" class="btn">بدء جديد</button>
-            </div>
+        <div style="display: flex; gap: 12px; align-items: center; margin-bottom: 1.5rem;">
+            <input type="text" id="projectName" placeholder="أدخل اسم المشروع أو القائد" class="input" style="flex: 1; padding: 0.9rem; font-size: 1.05rem;">
+            <button id="save-data" class="btn btn-primary">
+                <i class="icon">💾</i> حفظ
+            </button>
+            <button id="reset-data" class="btn btn-danger">
+                <i class="icon">🔄</i> جديد
+            </button>
         </div>
 
         <div class="raci-matrix">
@@ -407,9 +574,21 @@
         </div>
 
         <div class="controls">
-            <button id="addRow" class="btn">أضف مهمة</button>
-            <button id="addMember" class="btn">أضف عضو</button>
-            <button id="show-export-modal" class="btn">تصدير كملف HTML</button>
+            <button id="addRow" class="btn btn-primary">
+                <i class="icon">➕</i> أضف مهمة
+            </button>
+            <button id="addMember" class="btn btn-primary">
+                <i class="icon">👥</i> أضف عضو
+            </button>
+            <button id="show-export-modal" class="btn btn-success">
+                <i class="icon">📤</i> تصدير
+            </button>
+            <button id="export-json" class="btn btn-warning">
+                <i class="icon">💾</i> حفظ البيانات
+            </button>
+            <button id="import-json" class="btn btn-outline">
+                <i class="icon">📂</i> استعادة البيانات
+            </button>
         </div>
 
         <div id="summary-container" class="summary-container">
@@ -421,21 +600,39 @@
 
     <!-- Export Modal Dialog -->
     <dialog id="export-modal">
-        <h3 style="text-align:center;">اختر نوع التصدير</h3>
-        <p style="text-align:center;">سيتم إنشاء ملف HTML للعرض فقط.</p>
-        <div class="grid">
-            <button id="export-draft" class="btn secondary">مسودة (Draft)</button>
-            <button id="export-final" class="btn">نهائي (Final)</button>
+        <h3>اختر طريقة التصدير</h3>
+        <div class="export-options">
+            <div class="export-option" data-type="html-draft">
+                <i>📝</i>
+                <h4>HTML - مسودة</h4>
+                <p>ملف HTML مع علامة "مسودة"</p>
+            </div>
+            <div class="export-option" data-type="html-final">
+                <i>📄</i>
+                <h4>HTML - نهائي</h4>
+                <p>ملف HTML جاهز للطباعة</p>
+            </div>
+            <div class="export-option" data-type="png">
+                <i>🖼️</i>
+                <h4>صورة PNG</h4>
+                <p>صورة بدقة عالية بتنسيق A4</p>
+            </div>
         </div>
-        <footer style="margin-top: 1.5rem; text-align: center;">
-            <button id="close-modal" class="btn outline">إغلاق</button>
-        </footer>
+        <div class="modal-footer">
+            <button id="close-modal" class="btn btn-outline">
+                <i class="icon">❌</i> إغلاق
+            </button>
+        </div>
     </dialog>
 
     <!-- Notification -->
     <div class="notification" id="notification">
-        تم حفظ البيانات بنجاح! يمكنك العودة لاحقاً لمواصلة العمل.
+        <i>✅</i>
+        <span>تم حفظ البيانات بنجاح!</span>
     </div>
+
+    <!-- Hidden file input for import -->
+    <input type="file" id="file-import" accept=".json" style="display: none;">
 
     <!-- Main Application Logic -->
     <script>
@@ -485,7 +682,7 @@
         function renderRaciTable() {
             const table = document.getElementById('raci-table');
             
-            // Clear existing content except for the header structure
+            // Clear existing content
             table.querySelector('thead tr').innerHTML = '<th class="task-header">المهمة</th>';
             table.querySelector('tbody').innerHTML = '';
             
@@ -645,14 +842,23 @@
                     const tasks = member.roles[role];
                     if (tasks.length > 0) {
                         hasRoles = true;
-                        cardHtml += `<h5>${raciOptions[role]}</h5><ul>`;
+                        cardHtml += `<h5 style="color: ${role === 'R' ? '#5596c8' : 
+                                          role === 'A' ? '#64b464' : 
+                                          role === 'C' ? '#f0b450' : 
+                                          role === 'I' ? '#b4b4b4' : '#9c27b0'}; 
+                                        margin: 1rem 0 0.5rem; padding: 0.3rem 0; 
+                                        border-bottom: 1px dashed #e1e5eb;">
+                                    ${raciOptions[role]}
+                                    </h5><ul>`;
                         tasks.forEach(task => cardHtml += `<li>${task}</li>`);
                         cardHtml += `</ul>`;
                     }
                 }
                 
                 if (!hasRoles) {
-                    cardHtml += `<p>لا توجد مهام معينة لهذا العضو بالفلتر المحدد.</p>`;
+                    cardHtml += `<p style="text-align: center; padding: 1rem; color: #6c757d;">
+                                لا توجد مهام معينة لهذا العضو بالفلتر المحدد.
+                                </p>`;
                 }
                 
                 card.innerHTML = cardHtml;
@@ -725,28 +931,31 @@
             };
             
             localStorage.setItem('raci-matrix-data', JSON.stringify(data));
-            
-            // Show notification
-            const notification = document.getElementById('notification');
-            notification.classList.add('show');
-            setTimeout(() => {
-                notification.classList.remove('show');
-            }, 3000);
+            showNotification('تم حفظ البيانات بنجاح!');
         }
         
         // Load data from localStorage
         function loadData() {
             const savedData = localStorage.getItem('raci-matrix-data');
             if (savedData) {
-                const parsed = JSON.parse(savedData);
-                tasks = parsed.tasks || [];
-                members = parsed.members || [];
-                assignments = parsed.assignments || {};
-                
-                if (parsed.projectName) {
-                    document.getElementById('projectName').value = parsed.projectName;
+                try {
+                    const parsed = JSON.parse(savedData);
+                    tasks = parsed.tasks || [];
+                    members = parsed.members || [];
+                    assignments = parsed.assignments || {};
+                    
+                    if (parsed.projectName) {
+                        document.getElementById('projectName').value = parsed.projectName;
+                    }
+                    
+                    showNotification('تم استعادة البيانات بنجاح!');
+                    return true;
+                } catch (e) {
+                    showNotification('خطأ في تحميل البيانات المحفوظة!', true);
+                    return false;
                 }
             }
+            return false;
         }
         
         // Reset data
@@ -784,15 +993,46 @@
         // Save button
         document.getElementById('save-data').addEventListener('click', saveData);
         
+        // Show notification
+        function showNotification(message, isError = false) {
+            const notification = document.getElementById('notification');
+            notification.querySelector('span').textContent = message;
+            notification.classList.toggle('error', isError);
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+        
         // Export functionality
         const exportModal = document.getElementById('export-modal');
-        document.getElementById('show-export-modal').addEventListener('click', () => exportModal.showModal());
-        document.getElementById('close-modal').addEventListener('click', () => exportModal.close());
-        document.getElementById('export-draft').addEventListener('click', () => exportHTML('draft'));
-        document.getElementById('export-final').addEventListener('click', () => exportHTML('final'));
+        const fileImport = document.getElementById('file-import');
         
+        // Open export modal
+        document.getElementById('show-export-modal').addEventListener('click', () => exportModal.showModal());
+        
+        // Close modal
+        document.getElementById('close-modal').addEventListener('click', () => exportModal.close());
+        
+        // Export options
+        document.querySelectorAll('.export-option').forEach(option => {
+            option.addEventListener('click', () => {
+                const type = option.dataset.type;
+                exportModal.close();
+                
+                if (type === 'html-draft') {
+                    exportHTML('draft');
+                } else if (type === 'html-final') {
+                    exportHTML('final');
+                } else if (type === 'png') {
+                    exportPNG();
+                }
+            });
+        });
+        
+        // Export as HTML
         function exportHTML(exportType) {
-            exportModal.close();
             const projectName = document.getElementById('projectName').value;
             const title = projectName ? `مخطط RACI - ${projectName}` : 'مخطط RACI التفاعلي';
             
@@ -818,13 +1058,12 @@
                 members.forEach(member => {
                     const assignment = assignments[task.id]?.[member.id] || '';
                     const roleName = assignment ? raciOptions[assignment] : '';
-                    const roleClass = assignment ? roleClasses[assignment] : '';
                     const bgColor = assignment ? 
-                        (roleClass === 'role-r' ? 'rgba(85, 150, 200, 0.3)' :
-                         roleClass === 'role-a' ? 'rgba(100, 180, 100, 0.3)' :
-                         roleClass === 'role-c' ? 'rgba(240, 180, 80, 0.3)' :
-                         roleClass === 'role-i' ? 'rgba(180, 180, 180, 0.3)' :
-                         roleClass === 'role-e' ? 'rgba(156, 39, 176, 0.2)' : 'transparent') : 'transparent';
+                        (assignment === 'R' ? 'rgba(85, 150, 200, 0.3)' :
+                         assignment === 'A' ? 'rgba(100, 180, 100, 0.3)' :
+                         assignment === 'C' ? 'rgba(240, 180, 80, 0.3)' :
+                         assignment === 'I' ? 'rgba(180, 180, 180, 0.3)' :
+                         assignment === 'E' ? 'rgba(156, 39, 176, 0.2)' : 'transparent') : 'transparent';
                     
                     tableHtml += `<td style="padding: 12px; border: 1px solid #dee2e6; text-align: center; background-color: ${bgColor}">${roleName}</td>`;
                 });
@@ -833,49 +1072,6 @@
             });
             
             tableHtml += `</tbody></table>`;
-            
-            // Sorting script
-            const sortScript = `
-                <script>
-                    function sortTable(columnIndex) {
-                        const table = document.getElementById('exported-table');
-                        const tbody = table.querySelector('tbody');
-                        const rows = Array.from(tbody.querySelectorAll('tr'));
-                        const header = table.querySelectorAll('th')[columnIndex];
-                        const isAsc = header.classList.contains('sort-asc');
-                        
-                        // Remove sort classes from all headers
-                        table.querySelectorAll('th').forEach(th => {
-                            th.classList.remove('sort-asc', 'sort-desc');
-                        });
-                        
-                        // Sort rows
-                        rows.sort((a, b) => {
-                            const aText = a.cells[columnIndex].textContent;
-                            const bText = b.cells[columnIndex].textContent;
-                            
-                            const roleOrder = { 
-                                'R - مسؤول 👤': 0, 
-                                'A - مساءل 👑': 1, 
-                                'C - مستشار 💬': 2, 
-                                'I - مُطّلع 📨': 3, 
-                                'E - منفذ 🔨': 4 
-                            };
-                            
-                            const aOrder = roleOrder[aText] ?? 5;
-                            const bOrder = roleOrder[bText] ?? 5;
-                            
-                            return isAsc ? aOrder - bOrder : bOrder - aOrder;
-                        });
-                        
-                        // Add sorted rows back to tbody
-                        rows.forEach(row => tbody.appendChild(row));
-                        
-                        // Update header class
-                        header.classList.add(isAsc ? 'sort-desc' : 'sort-asc');
-                    }
-                <\/script>
-            `;
             
             const fileContent = `
 <!DOCTYPE html>
@@ -887,24 +1083,15 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://unpkg.com/@picocss/pico@latest/css/pico.min.css">
     <style>
-        :root {
-            --role-r: rgba(85, 150, 200, 0.3);
-            --role-a: rgba(100, 180, 100, 0.3);
-            --role-c: rgba(240, 180, 80, 0.3);
-            --role-i: rgba(180, 180, 180, 0.3);
-            --role-e: rgba(156, 39, 176, 0.2);
-        }
-        
         body {
             font-family: 'Cairo', sans-serif;
-            padding: 20px;
+            padding: 30px;
             background-color: #f8f9fa;
         }
         
         .container {
-            max-width: 100%;
+            max-width: 1200px;
             margin: 0 auto;
             padding: 30px;
             border-radius: 15px;
@@ -927,31 +1114,6 @@
             box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
         }
         
-        .member-header {
-            cursor: pointer;
-            position: relative;
-        }
-        
-        .member-header.sort-asc::after {
-            content: '↑';
-            position: absolute;
-            left: 5px;
-            top: 50%;
-            transform: translateY(-50%);
-            font-weight: bold;
-            color: #007bff;
-        }
-        
-        .member-header.sort-desc::after {
-            content: '↓';
-            position: absolute;
-            left: 5px;
-            top: 50%;
-            transform: translateY(-50%);
-            font-weight: bold;
-            color: #007bff;
-        }
-        
         body::after {
             content: '${watermarkText}';
             position: fixed;
@@ -966,44 +1128,12 @@
             opacity: 0.5;
         }
     </style>
-    ${sortScript}
 </head>
 <body>
     <div class="container">
         <h1>${title}</h1>
         <div class="raci-matrix">
-            <table id="exported-table">
-                <thead>
-                    <tr>
-                        <th style="background-color: #e9ecef; padding: 12px; border: 1px solid #dee2e6; min-width: 250px;">المهمة</th>`;
-            
-            members.forEach((member, index) => {
-                fileContent += `<th class="member-header" style="background-color: #f1f3f5; padding: 12px; border: 1px solid #dee2e6; min-width: 150px;" onclick="sortTable(${index + 1})">${member.name}</th>`;
-            });
-            
-            fileContent += `</tr></thead><tbody>`;
-            
-            tasks.forEach(task => {
-                fileContent += `<tr><td style="padding: 12px; border: 1px solid #dee2e6; text-align: right;">${task.name}</td>`;
-                
-                members.forEach(member => {
-                    const assignment = assignments[task.id]?.[member.id] || '';
-                    const roleName = assignment ? raciOptions[assignment] : '';
-                    const roleClass = assignment ? roleClasses[assignment] : '';
-                    const bgColor = assignment ? 
-                        (roleClass === 'role-r' ? 'rgba(85, 150, 200, 0.3)' :
-                         roleClass === 'role-a' ? 'rgba(100, 180, 100, 0.3)' :
-                         roleClass === 'role-c' ? 'rgba(240, 180, 80, 0.3)' :
-                         roleClass === 'role-i' ? 'rgba(180, 180, 180, 0.3)' :
-                         roleClass === 'role-e' ? 'rgba(156, 39, 176, 0.2)' : 'transparent') : 'transparent';
-                    
-                    fileContent += `<td style="padding: 12px; border: 1px solid #dee2e6; text-align: center; background-color: ${bgColor}">${roleName}</td>`;
-                });
-                
-                fileContent += `</tr>`;
-            });
-            
-            fileContent += `</tbody></table>
+            ${tableHtml}
         </div>
     </div>
 </body>
@@ -1018,15 +1148,158 @@
             document.body.removeChild(link);
         }
         
+        // Export as PNG
+        function exportPNG() {
+            const projectName = document.getElementById('projectName').value;
+            const title = projectName ? `مخطط RACI - ${projectName}` : 'مخطط RACI';
+            
+            // Create a temporary container for export
+            const container = document.createElement('div');
+            container.style.width = '297mm'; // A4 width in landscape
+            container.style.height = '210mm'; // A4 height in landscape
+            container.style.padding = '20px';
+            container.style.backgroundColor = 'white';
+            container.style.position = 'fixed';
+            container.style.top = '-10000px';
+            container.style.left = '0';
+            container.style.zIndex = '10000';
+            container.style.boxSizing = 'border-box';
+            
+            // Add title
+            const titleEl = document.createElement('h1');
+            titleEl.textContent = title;
+            titleEl.style.textAlign = 'center';
+            titleEl.style.margin = '0 0 20px';
+            titleEl.style.color = '#2c3e50';
+            titleEl.style.fontFamily = 'Cairo, sans-serif';
+            container.appendChild(titleEl);
+            
+            // Clone the table
+            const tableClone = document.getElementById('raci-table').cloneNode(true);
+            tableClone.style.width = '100%';
+            tableClone.style.margin = '0';
+            tableClone.style.borderCollapse = 'collapse';
+            tableClone.style.fontFamily = 'Cairo, sans-serif';
+            
+            // Apply styles to the cloned table
+            Array.from(tableClone.querySelectorAll('th, td')).forEach(cell => {
+                cell.style.padding = '10px';
+                cell.style.border = '1px solid #dee2e6';
+                cell.style.textAlign = 'center';
+                cell.style.fontFamily = 'Cairo, sans-serif';
+            });
+            
+            // Apply role colors
+            Array.from(tableClone.querySelectorAll('td')).forEach(td => {
+                const select = td.querySelector('select');
+                if (select) {
+                    const role = select.value;
+                    if (role) {
+                        td.style.backgroundColor = 
+                            role === 'R' ? 'rgba(85, 150, 200, 0.3)' :
+                            role === 'A' ? 'rgba(100, 180, 100, 0.3)' :
+                            role === 'C' ? 'rgba(240, 180, 80, 0.3)' :
+                            role === 'I' ? 'rgba(180, 180, 180, 0.3)' :
+                            role === 'E' ? 'rgba(156, 39, 176, 0.2)' : 'transparent';
+                    }
+                }
+            });
+            
+            container.appendChild(tableClone);
+            document.body.appendChild(container);
+            
+            // Use html2canvas to create the image
+            html2canvas(container, {
+                scale: 2,
+                useCORS: true,
+                logging: false,
+                backgroundColor: '#ffffff'
+            }).then(canvas => {
+                // Convert canvas to PNG
+                const imgData = canvas.toDataURL('image/png');
+                
+                // Create download link
+                const link = document.createElement('a');
+                link.href = imgData;
+                link.download = `${(projectName.replace(/\s/g, '_') || 'raci-chart')}.png`;
+                link.click();
+                
+                // Clean up
+                document.body.removeChild(container);
+            });
+        }
+        
+        // Export as JSON
+        document.getElementById('export-json').addEventListener('click', () => {
+            const projectName = document.getElementById('projectName').value;
+            const data = {
+                tasks: tasks,
+                members: members,
+                assignments: assignments,
+                projectName: projectName
+            };
+            
+            const jsonStr = JSON.stringify(data, null, 2);
+            const blob = new Blob([jsonStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `${(projectName.replace(/\s/g, '_') || 'raci-matrix')}.json`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            showNotification('تم تصدير البيانات بنجاح!');
+        });
+        
+        // Import JSON
+        document.getElementById('import-json').addEventListener('click', () => {
+            fileImport.click();
+        });
+        
+        fileImport.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                try {
+                    const data = JSON.parse(event.target.result);
+                    
+                    if (data.tasks && data.members && data.assignments) {
+                        tasks = data.tasks;
+                        members = data.members;
+                        assignments = data.assignments;
+                        
+                        if (data.projectName) {
+                            document.getElementById('projectName').value = data.projectName;
+                        }
+                        
+                        saveData();
+                        renderRaciTable();
+                        updateSummaryTable();
+                        showNotification('تم استيراد البيانات بنجاح!');
+                    } else {
+                        showNotification('ملف غير صالح!', true);
+                    }
+                } catch (error) {
+                    showNotification('خطأ في تحميل الملف!', true);
+                    console.error(error);
+                }
+            };
+            reader.readAsText(file);
+        });
+        
         // Initialize the application
         document.addEventListener('DOMContentLoaded', () => {
             // Load saved data
-            loadData();
-            
-            // Render the interface
-            renderRaciTable();
-            renderSummaryFilters();
-            updateSummaryTable();
+            if (!loadData()) {
+                // If no saved data, render with defaults
+                renderRaciTable();
+                renderSummaryFilters();
+                updateSummaryTable();
+            }
             
             // Auto-save every 30 seconds
             setInterval(saveData, 30000);
