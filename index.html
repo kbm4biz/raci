@@ -21,12 +21,17 @@
             --role-c: rgba(240, 180, 80, 0.3);
             --role-i: rgba(180, 180, 180, 0.3);
             --role-e: rgba(156, 39, 176, 0.2);
+            --primary: #007bff;
+            --primary-hover: #0069d9;
+            --success: #28a745;
+            --success-hover: #218838;
         }
         
         body {
             font-family: 'Cairo', sans-serif;
             padding: 1rem;
             background-color: #f8f9fa;
+            background-image: linear-gradient(120deg, #fdfbfb 0%, #ebedee 100%);
         }
         
         main.container {
@@ -42,6 +47,15 @@
             text-align: center;
             margin-bottom: 1.5rem;
             color: #2c3e50;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        }
+        
+        .header-section {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            margin-bottom: 2rem;
         }
         
         .grid-container, .summary-container {
@@ -59,21 +73,42 @@
         
         button {
             cursor: pointer;
-            transition: background-color 0.3s ease, transform 0.2s ease;
+            transition: all 0.3s ease;
             min-width: 120px;
+            border-radius: 50px;
+            box-shadow: 0 4px 6px rgba(50, 50, 93, 0.11), 0 1px 3px rgba(0, 0, 0, 0.08);
+            font-weight: bold;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            padding: 0.75rem 1.5rem;
         }
         
         button:hover {
-            transform: translateY(-2px);
+            transform: translateY(-3px);
+            box-shadow: 0 7px 14px rgba(50, 50, 93, 0.1), 0 3px 6px rgba(0, 0, 0, 0.08);
         }
         
         #show-export-modal {
-            background-color: #388E3C;
-            border-color: #388E3C;
+            background-color: var(--success);
+            border-color: var(--success);
+            color: white;
         }
         
         #show-export-modal:hover {
-            background-color: #2E7D32;
+            background-color: var(--success-hover);
+        }
+        
+        #save-data {
+            background-color: #6c757d;
+            border-color: #6c757d;
+            color: white;
+        }
+        
+        #reset-data {
+            background-color: #dc3545;
+            border-color: #dc3545;
+            color: white;
         }
         
         .raci-matrix {
@@ -83,6 +118,7 @@
             border: 1px solid #dee2e6;
             border-radius: 0.5rem;
             box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            background: white;
         }
         
         table {
@@ -95,6 +131,7 @@
             padding: 0.75rem;
             text-align: center;
             border: 1px solid #dee2e6;
+            transition: background-color 0.2s ease;
         }
         
         th {
@@ -102,6 +139,7 @@
             font-weight: bold;
             position: sticky;
             top: 0;
+            z-index: 10;
         }
         
         .task-header {
@@ -111,6 +149,32 @@
         
         .member-header {
             min-width: 150px;
+            cursor: pointer;
+            position: relative;
+        }
+        
+        .member-header:hover {
+            background-color: #e2e6ea;
+        }
+        
+        .member-header.sort-asc::after {
+            content: '↑';
+            position: absolute;
+            left: 5px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-weight: bold;
+            color: var(--primary);
+        }
+        
+        .member-header.sort-desc::after {
+            content: '↓';
+            position: absolute;
+            left: 5px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-weight: bold;
+            color: var(--primary);
         }
         
         .task-cell {
@@ -125,6 +189,13 @@
             border-radius: 0.25rem;
             font-family: inherit;
             font-size: inherit;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .task-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+            outline: none;
         }
         
         .raci-select {
@@ -136,6 +207,13 @@
             font-family: inherit;
             font-size: inherit;
             cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .raci-select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+            outline: none;
         }
         
         /* Role-based colors */
@@ -162,11 +240,13 @@
         .summary-filters button {
             font-size: 0.9em;
             padding: 0.5rem 1rem;
+            min-width: auto;
         }
         
         .summary-filters button.active {
-            background-color: #007bff;
+            background-color: var(--primary);
             color: white;
+            border-color: var(--primary);
         }
         
         .summary-grid {
@@ -181,11 +261,17 @@
             padding: 1rem;
             background-color: white;
             box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .summary-member-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
         }
         
         .summary-member-card h4 {
             margin-top: 0;
-            border-bottom: 2px solid #007bff;
+            border-bottom: 2px solid var(--primary);
             padding-bottom: 0.5rem;
             color: #2c3e50;
         }
@@ -199,6 +285,16 @@
             margin-bottom: 0.5rem;
             padding: 0.25rem 0;
             border-bottom: 1px dashed #e9ecef;
+            position: relative;
+            padding-right: 20px;
+        }
+        
+        .summary-member-card li::before {
+            content: "•";
+            position: absolute;
+            right: 0;
+            color: var(--primary);
+            font-size: 1.2em;
         }
         
         /* Export Modal Styles */
@@ -209,6 +305,7 @@
             border: 1px solid #dee2e6;
             padding: 1.5rem;
             background-color: white;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
         }
         
         dialog::backdrop {
@@ -226,11 +323,29 @@
         .member-header-input {
             width: 100%;
             padding: 0.5rem;
-            border: 2px solid #007bff;
+            border: 2px solid var(--primary);
             border-radius: 0.25rem;
             font-family: inherit;
             font-weight: bold;
             text-align: center;
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 8px;
+            background-color: var(--success);
+            color: white;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transform: translateX(200%);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+        }
+        
+        .notification.show {
+            transform: translateX(0);
         }
         
         /* Responsive adjustments */
@@ -251,16 +366,30 @@
             .summary-grid {
                 grid-template-columns: 1fr;
             }
+            
+            .header-section {
+                padding: 1rem;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
         }
     </style>
 </head>
 <body>
     <main class="container">
-        <h1>أداة مخطط RACI</h1>
-        <p style="text-align: center;">حدد الأدوار والمسؤوليات لمهام مشروعك.</p>
+        <div class="header-section">
+            <h1>أداة مخطط RACI</h1>
+            <p style="text-align: center; opacity: 0.9;">حدد الأدوار والمسؤوليات لمهام مشروعك بطريقة تفاعلية</p>
+        </div>
         
         <div class="grid">
-            <input type="text" id="projectName" placeholder="أدخل اسم المشروع أو القائد" class="input">
+            <div style="display: flex; gap: 10px; align-items: center;">
+                <input type="text" id="projectName" placeholder="أدخل اسم المشروع أو القائد" class="input" style="flex: 1;">
+                <button id="save-data" class="btn">حفظ البيانات</button>
+                <button id="reset-data" class="btn">بدء جديد</button>
+            </div>
         </div>
 
         <div class="raci-matrix">
@@ -298,10 +427,15 @@
             <button id="export-draft" class="btn secondary">مسودة (Draft)</button>
             <button id="export-final" class="btn">نهائي (Final)</button>
         </div>
-        <footer style="margin-top: 1rem; text-align: center;">
+        <footer style="margin-top: 1.5rem; text-align: center;">
             <button id="close-modal" class="btn outline">إغلاق</button>
         </footer>
     </dialog>
+
+    <!-- Notification -->
+    <div class="notification" id="notification">
+        تم حفظ البيانات بنجاح! يمكنك العودة لاحقاً لمواصلة العمل.
+    </div>
 
     <!-- Main Application Logic -->
     <script>
@@ -345,6 +479,7 @@
         };
         
         let summaryRoleFilter = 'All';
+        let sortConfig = { memberId: null, direction: 'asc' };
         
         // Initialize the RACI table
         function renderRaciTable() {
@@ -357,7 +492,8 @@
             // Add member headers
             members.forEach((member, index) => {
                 const th = document.createElement('th');
-                th.className = 'member-header';
+                th.className = `member-header ${sortConfig.memberId === member.id ? 
+                                  (sortConfig.direction === 'asc' ? 'sort-asc' : 'sort-desc') : ''}`;
                 th.dataset.memberId = member.id;
                 
                 const input = document.createElement('input');
@@ -368,10 +504,28 @@
                 
                 input.addEventListener('change', (e) => {
                     member.name = e.target.value;
+                    saveData();
                     updateSummaryTable();
                 });
                 
                 th.appendChild(input);
+                
+                // Add sort indicator and click event
+                th.addEventListener('click', (e) => {
+                    if (e.target.tagName === 'INPUT') return;
+                    
+                    if (sortConfig.memberId === member.id) {
+                        // Toggle direction if same member is clicked
+                        sortConfig.direction = sortConfig.direction === 'asc' ? 'desc' : 'asc';
+                    } else {
+                        // Set new member and default to asc
+                        sortConfig.memberId = member.id;
+                        sortConfig.direction = 'asc';
+                    }
+                    
+                    renderRaciTable();
+                });
+                
                 table.querySelector('thead tr').appendChild(th);
             });
             
@@ -392,6 +546,7 @@
                 
                 taskInput.addEventListener('change', (e) => {
                     task.name = e.target.value;
+                    saveData();
                     updateSummaryTable();
                 });
                 
@@ -431,6 +586,7 @@
                         // Update class for coloring
                         e.target.className = `raci-select ${value ? roleClasses[value] : ''}`;
                         
+                        saveData();
                         updateSummaryTable();
                     });
                     
@@ -538,6 +694,7 @@
             const newId = tasks.length > 0 ? Math.max(...tasks.map(t => t.id)) + 1 : 1;
             tasks.push({ id: newId, name: `مهمة جديدة ${newId}` });
             assignments[newId] = {};
+            saveData();
             renderRaciTable();
             updateSummaryTable();
         });
@@ -553,9 +710,79 @@
                 assignments[task.id][newId] = '';
             });
             
+            saveData();
             renderRaciTable();
             updateSummaryTable();
         });
+        
+        // Save data to localStorage
+        function saveData() {
+            const data = {
+                tasks: tasks,
+                members: members,
+                assignments: assignments,
+                projectName: document.getElementById('projectName').value
+            };
+            
+            localStorage.setItem('raci-matrix-data', JSON.stringify(data));
+            
+            // Show notification
+            const notification = document.getElementById('notification');
+            notification.classList.add('show');
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+        
+        // Load data from localStorage
+        function loadData() {
+            const savedData = localStorage.getItem('raci-matrix-data');
+            if (savedData) {
+                const parsed = JSON.parse(savedData);
+                tasks = parsed.tasks || [];
+                members = parsed.members || [];
+                assignments = parsed.assignments || {};
+                
+                if (parsed.projectName) {
+                    document.getElementById('projectName').value = parsed.projectName;
+                }
+            }
+        }
+        
+        // Reset data
+        document.getElementById('reset-data').addEventListener('click', () => {
+            if (confirm('هل أنت متأكد من أنك تريد بدء مخطط جديد؟ سيتم حذف جميع البيانات الحالية.')) {
+                tasks = [
+                    { id: 1, name: 'تصميم واجهة المستخدم' },
+                    { id: 2, name: 'تطوير الواجهة الأمامية' },
+                    { id: 3, name: 'تطوير الواجهة الخلفية' },
+                    { id: 4, name: 'النشر على الخادم' }
+                ];
+                
+                members = [
+                    { id: 1, name: 'عضو الفريق 1' },
+                    { id: 2, name: 'عضو الفريق 2' },
+                    { id: 3, name: 'عضو الفريق 3' },
+                    { id: 4, name: 'عضو الفريق 4' }
+                ];
+                
+                assignments = {
+                    '1': { '1': 'A', '2': 'R', '3': 'C', '4': 'E' },
+                    '2': { '1': 'I', '2': 'A', '3': 'R', '4': 'E' },
+                    '3': { '1': 'C', '2': 'I', '3': 'A', '4': 'R' },
+                    '4': { '1': 'R', '2': 'A', '3': 'I', '4': '' }
+                };
+                
+                document.getElementById('projectName').value = '';
+                
+                saveData();
+                renderRaciTable();
+                updateSummaryTable();
+            }
+        });
+        
+        // Save button
+        document.getElementById('save-data').addEventListener('click', saveData);
         
         // Export functionality
         const exportModal = document.getElementById('export-modal');
@@ -592,14 +819,63 @@
                     const assignment = assignments[task.id]?.[member.id] || '';
                     const roleName = assignment ? raciOptions[assignment] : '';
                     const roleClass = assignment ? roleClasses[assignment] : '';
+                    const bgColor = assignment ? 
+                        (roleClass === 'role-r' ? 'rgba(85, 150, 200, 0.3)' :
+                         roleClass === 'role-a' ? 'rgba(100, 180, 100, 0.3)' :
+                         roleClass === 'role-c' ? 'rgba(240, 180, 80, 0.3)' :
+                         roleClass === 'role-i' ? 'rgba(180, 180, 180, 0.3)' :
+                         roleClass === 'role-e' ? 'rgba(156, 39, 176, 0.2)' : 'transparent') : 'transparent';
                     
-                    tableHtml += `<td style="padding: 12px; border: 1px solid #dee2e6; text-align: center; ${roleClass ? `background-color: var(--${roleClass.replace('role-', '')})` : ''}">${roleName}</td>`;
+                    tableHtml += `<td style="padding: 12px; border: 1px solid #dee2e6; text-align: center; background-color: ${bgColor}">${roleName}</td>`;
                 });
                 
                 tableHtml += `</tr>`;
             });
             
             tableHtml += `</tbody></table>`;
+            
+            // Sorting script
+            const sortScript = `
+                <script>
+                    function sortTable(columnIndex) {
+                        const table = document.getElementById('exported-table');
+                        const tbody = table.querySelector('tbody');
+                        const rows = Array.from(tbody.querySelectorAll('tr'));
+                        const header = table.querySelectorAll('th')[columnIndex];
+                        const isAsc = header.classList.contains('sort-asc');
+                        
+                        // Remove sort classes from all headers
+                        table.querySelectorAll('th').forEach(th => {
+                            th.classList.remove('sort-asc', 'sort-desc');
+                        });
+                        
+                        // Sort rows
+                        rows.sort((a, b) => {
+                            const aText = a.cells[columnIndex].textContent;
+                            const bText = b.cells[columnIndex].textContent;
+                            
+                            const roleOrder = { 
+                                'R - مسؤول 👤': 0, 
+                                'A - مساءل 👑': 1, 
+                                'C - مستشار 💬': 2, 
+                                'I - مُطّلع 📨': 3, 
+                                'E - منفذ 🔨': 4 
+                            };
+                            
+                            const aOrder = roleOrder[aText] ?? 5;
+                            const bOrder = roleOrder[bText] ?? 5;
+                            
+                            return isAsc ? aOrder - bOrder : bOrder - aOrder;
+                        });
+                        
+                        // Add sorted rows back to tbody
+                        rows.forEach(row => tbody.appendChild(row));
+                        
+                        // Update header class
+                        header.classList.add(isAsc ? 'sort-desc' : 'sort-asc');
+                    }
+                <\/script>
+            `;
             
             const fileContent = `
 <!DOCTYPE html>
@@ -611,6 +887,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/@picocss/pico@latest/css/pico.min.css">
     <style>
         :root {
             --role-r: rgba(85, 150, 200, 0.3);
@@ -650,6 +927,31 @@
             box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
         }
         
+        .member-header {
+            cursor: pointer;
+            position: relative;
+        }
+        
+        .member-header.sort-asc::after {
+            content: '↑';
+            position: absolute;
+            left: 5px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-weight: bold;
+            color: #007bff;
+        }
+        
+        .member-header.sort-desc::after {
+            content: '↓';
+            position: absolute;
+            left: 5px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-weight: bold;
+            color: #007bff;
+        }
+        
         body::after {
             content: '${watermarkText}';
             position: fixed;
@@ -664,12 +966,44 @@
             opacity: 0.5;
         }
     </style>
+    ${sortScript}
 </head>
 <body>
     <div class="container">
         <h1>${title}</h1>
         <div class="raci-matrix">
-            ${tableHtml}
+            <table id="exported-table">
+                <thead>
+                    <tr>
+                        <th style="background-color: #e9ecef; padding: 12px; border: 1px solid #dee2e6; min-width: 250px;">المهمة</th>`;
+            
+            members.forEach((member, index) => {
+                fileContent += `<th class="member-header" style="background-color: #f1f3f5; padding: 12px; border: 1px solid #dee2e6; min-width: 150px;" onclick="sortTable(${index + 1})">${member.name}</th>`;
+            });
+            
+            fileContent += `</tr></thead><tbody>`;
+            
+            tasks.forEach(task => {
+                fileContent += `<tr><td style="padding: 12px; border: 1px solid #dee2e6; text-align: right;">${task.name}</td>`;
+                
+                members.forEach(member => {
+                    const assignment = assignments[task.id]?.[member.id] || '';
+                    const roleName = assignment ? raciOptions[assignment] : '';
+                    const roleClass = assignment ? roleClasses[assignment] : '';
+                    const bgColor = assignment ? 
+                        (roleClass === 'role-r' ? 'rgba(85, 150, 200, 0.3)' :
+                         roleClass === 'role-a' ? 'rgba(100, 180, 100, 0.3)' :
+                         roleClass === 'role-c' ? 'rgba(240, 180, 80, 0.3)' :
+                         roleClass === 'role-i' ? 'rgba(180, 180, 180, 0.3)' :
+                         roleClass === 'role-e' ? 'rgba(156, 39, 176, 0.2)' : 'transparent') : 'transparent';
+                    
+                    fileContent += `<td style="padding: 12px; border: 1px solid #dee2e6; text-align: center; background-color: ${bgColor}">${roleName}</td>`;
+                });
+                
+                fileContent += `</tr>`;
+            });
+            
+            fileContent += `</tbody></table>
         </div>
     </div>
 </body>
@@ -686,9 +1020,16 @@
         
         // Initialize the application
         document.addEventListener('DOMContentLoaded', () => {
+            // Load saved data
+            loadData();
+            
+            // Render the interface
             renderRaciTable();
             renderSummaryFilters();
             updateSummaryTable();
+            
+            // Auto-save every 30 seconds
+            setInterval(saveData, 30000);
         });
     </script>
 </body>
