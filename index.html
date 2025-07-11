@@ -13,82 +13,144 @@
     <!-- Pico.css for modern styling -->
     <link rel="stylesheet" href="https://unpkg.com/@picocss/pico@latest/css/pico.min.css">
     
-    <!-- Grid.js theme -->
-    <link href="https://unpkg.com/gridjs/dist/theme/mermaid.min.css" rel="stylesheet" />
-
     <!-- Custom Styles for a better look and feel -->
     <style>
+        :root {
+            --role-r: rgba(85, 150, 200, 0.3);
+            --role-a: rgba(100, 180, 100, 0.3);
+            --role-c: rgba(240, 180, 80, 0.3);
+            --role-i: rgba(180, 180, 180, 0.3);
+            --role-e: rgba(156, 39, 176, 0.2);
+        }
+        
         body {
             font-family: 'Cairo', sans-serif;
             padding: 1rem;
+            background-color: #f8f9fa;
         }
+        
         main.container {
-            max-width: 1200px;
+            max-width: 100%;
             margin: auto;
             padding: 2rem;
             border-radius: 1rem;
             box-shadow: 0 8px 30px rgba(0,0,0,0.1);
-            background-color: var(--card-background-color);
+            background-color: white;
         }
+        
         h1, h2 {
             text-align: center;
             margin-bottom: 1.5rem;
-            color: var(--h1-color);
+            color: #2c3e50;
         }
+        
         .grid-container, .summary-container {
             margin-top: 2rem;
             margin-bottom: 2rem;
         }
+        
         .controls {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            display: flex;
+            flex-wrap: wrap;
             gap: 1rem;
             margin-top: 1.5rem;
+            justify-content: center;
         }
+        
         button {
             cursor: pointer;
             transition: background-color 0.3s ease, transform 0.2s ease;
+            min-width: 120px;
         }
+        
         button:hover {
             transform: translateY(-2px);
         }
+        
         #show-export-modal {
             background-color: #388E3C;
             border-color: #388E3C;
         }
+        
         #show-export-modal:hover {
             background-color: #2E7D32;
         }
+        
+        .raci-matrix {
+            width: 100%;
+            overflow-x: auto;
+            margin-top: 1.5rem;
+            border: 1px solid #dee2e6;
+            border-radius: 0.5rem;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 800px;
+        }
+        
+        th, td {
+            padding: 0.75rem;
+            text-align: center;
+            border: 1px solid #dee2e6;
+        }
+        
+        th {
+            background-color: #f1f3f5;
+            font-weight: bold;
+            position: sticky;
+            top: 0;
+        }
+        
+        .task-header {
+            min-width: 250px;
+            background-color: #e9ecef;
+        }
+        
+        .member-header {
+            min-width: 150px;
+        }
+        
+        .task-cell {
+            text-align: right;
+            padding: 0.75rem;
+        }
+        
+        .task-input {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #ced4da;
+            border-radius: 0.25rem;
+            font-family: inherit;
+            font-size: inherit;
+        }
+        
         .raci-select {
             width: 100%;
-            padding: 8px;
-            border-radius: 4px;
-            border: 1px solid var(--form-element-border-color);
-            background-color: var(--background-color);
-        }
-        .header-input {
-            width: 100%;
-            border: 2px solid var(--primary);
-            padding: 5px;
-            font-size: inherit;
+            padding: 0.5rem;
+            border-radius: 0.25rem;
+            border: 1px solid #ced4da;
+            background-color: transparent;
             font-family: inherit;
-            font-weight: bold;
-            text-align: right;
-        }
-        .gridjs-th, .gridjs-td[data-column-id="task"] {
+            font-size: inherit;
             cursor: pointer;
         }
+        
         /* Role-based colors */
-        .gridjs-td.role-r { background-color: rgba(85, 150, 200, 0.3) !important; }
-        .gridjs-td.role-a { background-color: rgba(100, 180, 100, 0.3) !important; }
-        .gridjs-td.role-c { background-color: rgba(240, 180, 80, 0.3) !important; }
-        .gridjs-td.role-i { background-color: rgba(180, 180, 180, 0.3) !important; }
-        .gridjs-td.role-e { background-color: rgba(156, 39, 176, 0.2) !important; } /* Purple for Executor */
+        .role-r { background-color: var(--role-r) !important; }
+        .role-a { background-color: var(--role-a) !important; }
+        .role-c { background-color: var(--role-c) !important; }
+        .role-i { background-color: var(--role-i) !important; }
+        .role-e { background-color: var(--role-e) !important; }
         
         .summary-container {
-            border-top: 2px solid var(--muted-border-color);
+            border-top: 2px solid #dee2e6;
             padding-top: 1.5rem;
+            margin-top: 2rem;
         }
+        
         .summary-filters {
             display: flex;
             flex-wrap: wrap;
@@ -96,51 +158,99 @@
             justify-content: center;
             margin-bottom: 1.5rem;
         }
+        
         .summary-filters button {
             font-size: 0.9em;
             padding: 0.5rem 1rem;
         }
+        
         .summary-filters button.active {
-            background-color: var(--primary);
-            color: var(--primary-inverse);
+            background-color: #007bff;
+            color: white;
         }
+        
         .summary-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
             gap: 1.5rem;
         }
+        
         .summary-member-card {
-            border: 1px solid var(--muted-border-color);
+            border: 1px solid #dee2e6;
             border-radius: 8px;
             padding: 1rem;
-            background-color: var(--card-background-color);
+            background-color: white;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
         }
+        
         .summary-member-card h4 {
             margin-top: 0;
-            border-bottom: 2px solid var(--primary);
+            border-bottom: 2px solid #007bff;
             padding-bottom: 0.5rem;
+            color: #2c3e50;
         }
+        
         .summary-member-card ul {
             padding-right: 20px;
             margin-bottom: 0;
         }
+        
         .summary-member-card li {
-            margin-bottom: 0.25rem;
+            margin-bottom: 0.5rem;
+            padding: 0.25rem 0;
+            border-bottom: 1px dashed #e9ecef;
         }
+        
         /* Export Modal Styles */
         dialog {
             width: 90%;
             max-width: 400px;
             border-radius: 8px;
-            border: 1px solid var(--muted-border-color);
+            border: 1px solid #dee2e6;
             padding: 1.5rem;
+            background-color: white;
         }
+        
         dialog::backdrop {
             background: rgba(0, 0, 0, 0.5);
             backdrop-filter: blur(3px);
         }
+        
         dialog .grid {
+            display: grid;
             grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .member-header-input {
+            width: 100%;
+            padding: 0.5rem;
+            border: 2px solid #007bff;
+            border-radius: 0.25rem;
+            font-family: inherit;
+            font-weight: bold;
+            text-align: center;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            main.container {
+                padding: 1rem;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            button {
+                width: 100%;
+            }
+            
+            .summary-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
@@ -150,15 +260,27 @@
         <p style="text-align: center;">حدد الأدوار والمسؤوليات لمهام مشروعك.</p>
         
         <div class="grid">
-            <input type="text" id="projectName" placeholder="أدخل اسم المشروع أو القائد">
+            <input type="text" id="projectName" placeholder="أدخل اسم المشروع أو القائد" class="input">
         </div>
 
-        <div id="raci-grid" class="grid-container"></div>
+        <div class="raci-matrix">
+            <table id="raci-table">
+                <thead>
+                    <tr>
+                        <th class="task-header">المهمة</th>
+                        <!-- Member headers will be added here dynamically -->
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Rows will be added here dynamically -->
+                </tbody>
+            </table>
+        </div>
 
         <div class="controls">
-            <button id="addRow">أضف مهمة</button>
-            <button id="addMember">أضف عضو</button>
-            <button id="show-export-modal">تصدير كملف HTML</button>
+            <button id="addRow" class="btn">أضف مهمة</button>
+            <button id="addMember" class="btn">أضف عضو</button>
+            <button id="show-export-modal" class="btn">تصدير كملف HTML</button>
         </div>
 
         <div id="summary-container" class="summary-container">
@@ -173,17 +295,14 @@
         <h3 style="text-align:center;">اختر نوع التصدير</h3>
         <p style="text-align:center;">سيتم إنشاء ملف HTML للعرض فقط.</p>
         <div class="grid">
-            <button id="export-draft" class="secondary">مسودة (Draft)</button>
-            <button id="export-final">نهائي (Final)</button>
+            <button id="export-draft" class="btn secondary">مسودة (Draft)</button>
+            <button id="export-final" class="btn">نهائي (Final)</button>
         </div>
-        <footer style="margin-top: 1rem;">
-            <button id="close-modal" class="outline">إغلاق</button>
+        <footer style="margin-top: 1rem; text-align: center;">
+            <button id="close-modal" class="btn outline">إغلاق</button>
         </footer>
     </dialog>
 
-    <!-- JavaScript Libraries -->
-    <script src="https://unpkg.com/gridjs/dist/gridjs.umd.js"></script>
-    
     <!-- Main Application Logic -->
     <script>
         const raciOptions = {
@@ -194,112 +313,180 @@
             'I': 'I - مُطّلع 📨',
             'E': 'E - منفذ 🔨' // Added Executor
         };
-        const roleClasses = { 'R': 'role-r', 'A': 'role-a', 'C': 'role-c', 'I': 'role-i', 'E': 'role-e' };
-
-        let columns = [
-             {
-                id: 'task',
-                name: 'المهمة',
-                width: '250px',
-                sort: true,
-                // The task column is now editable via the 'cellEdit' event
-             },
-            // The rest of the columns are generated dynamically
+        
+        const roleClasses = { 
+            'R': 'role-r', 
+            'A': 'role-a', 
+            'C': 'role-c', 
+            'I': 'role-i', 
+            'E': 'role-e' 
+        };
+        
+        // Initial data structure
+        let tasks = [
+            { id: 1, name: 'تصميم واجهة المستخدم' },
+            { id: 2, name: 'تطوير الواجهة الأمامية' },
+            { id: 3, name: 'تطوير الواجهة الخلفية' },
+            { id: 4, name: 'النشر على الخادم' }
         ];
-
-        let data = [
-            ['تصميم واجهة المستخدم', 'A', 'R', 'C', 'E'],
-            ['تطوير الواجهة الأمامية', 'I', 'A', 'R', 'E'],
-            ['تطوير الواجهة الخلفية', 'C', 'I', 'A', 'R'],
-            ['النشر على الخادم', 'R', 'A', 'I', ''],
+        
+        let members = [
+            { id: 1, name: 'عضو الفريق 1' },
+            { id: 2, name: 'عضو الفريق 2' },
+            { id: 3, name: 'عضو الفريق 3' },
+            { id: 4, name: 'عضو الفريق 4' }
         ];
-
+        
+        let assignments = {
+            '1': { '1': 'A', '2': 'R', '3': 'C', '4': 'E' },
+            '2': { '1': 'I', '2': 'A', '3': 'R', '4': 'E' },
+            '3': { '1': 'C', '2': 'I', '3': 'A', '4': 'R' },
+            '4': { '1': 'R', '2': 'A', '3': 'I', '4': '' }
+        };
+        
         let summaryRoleFilter = 'All';
-
-        function createRaciDropdown(cell, row, cellIndex) {
-            const rowIndex = data.findIndex(d => d === row.data);
-            const selectedValue = cell || '';
-            let optionsHtml = '';
-            for (const [key, value] of Object.entries(raciOptions)) {
-                optionsHtml += `<option value="${key}" ${key === selectedValue ? 'selected' : ''}>${value}</option>`;
-            }
-            return gridjs.html(`<select class="raci-select" data-row-index="${rowIndex}" data-cell-index="${cellIndex}">${optionsHtml}</select>`);
-        }
         
-        function generateGridColumns() {
-            const staticCols = [{ id: 'task', name: 'المهمة', width: '250px', sort: true, editable: true }];
-            const memberCols = data[0].slice(1).map((_, index) => {
-                const memberIndex = index + 1;
-                return {
-                    id: `member${memberIndex}`,
-                    name: `عضو الفريق ${memberIndex}`,
-                    sort: true,
-                    formatter: (cell, row) => createRaciDropdown(cell, row, memberIndex),
-                    attributes: (cell, row, col) => {
-                        if (cell && roleClasses[cell]) {
-                            return { 'class': 'gridjs-td ' + roleClasses[cell] };
-                        }
-                    }
-                }
+        // Initialize the RACI table
+        function renderRaciTable() {
+            const table = document.getElementById('raci-table');
+            
+            // Clear existing content except for the header structure
+            table.querySelector('thead tr').innerHTML = '<th class="task-header">المهمة</th>';
+            table.querySelector('tbody').innerHTML = '';
+            
+            // Add member headers
+            members.forEach((member, index) => {
+                const th = document.createElement('th');
+                th.className = 'member-header';
+                th.dataset.memberId = member.id;
+                
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.className = 'member-header-input';
+                input.value = member.name;
+                input.placeholder = 'اسم العضو';
+                
+                input.addEventListener('change', (e) => {
+                    member.name = e.target.value;
+                    updateSummaryTable();
+                });
+                
+                th.appendChild(input);
+                table.querySelector('thead tr').appendChild(th);
             });
-            return staticCols.concat(memberCols);
+            
+            // Add rows for tasks
+            tasks.forEach(task => {
+                const row = document.createElement('tr');
+                row.dataset.taskId = task.id;
+                
+                // Task cell
+                const taskCell = document.createElement('td');
+                taskCell.className = 'task-cell';
+                
+                const taskInput = document.createElement('input');
+                taskInput.type = 'text';
+                taskInput.className = 'task-input';
+                taskInput.value = task.name;
+                taskInput.placeholder = 'اسم المهمة';
+                
+                taskInput.addEventListener('change', (e) => {
+                    task.name = e.target.value;
+                    updateSummaryTable();
+                });
+                
+                taskCell.appendChild(taskInput);
+                row.appendChild(taskCell);
+                
+                // Member assignment cells
+                members.forEach(member => {
+                    const cell = document.createElement('td');
+                    const assignment = assignments[task.id]?.[member.id] || '';
+                    
+                    const select = document.createElement('select');
+                    select.className = `raci-select ${assignment ? roleClasses[assignment] : ''}`;
+                    select.dataset.taskId = task.id;
+                    select.dataset.memberId = member.id;
+                    
+                    // Add options to the select
+                    for (const [key, value] of Object.entries(raciOptions)) {
+                        const option = document.createElement('option');
+                        option.value = key;
+                        option.textContent = value;
+                        if (key === assignment) {
+                            option.selected = true;
+                        }
+                        select.appendChild(option);
+                    }
+                    
+                    // Handle selection change
+                    select.addEventListener('change', (e) => {
+                        const taskId = e.target.dataset.taskId;
+                        const memberId = e.target.dataset.memberId;
+                        const value = e.target.value;
+                        
+                        if (!assignments[taskId]) assignments[taskId] = {};
+                        assignments[taskId][memberId] = value;
+                        
+                        // Update class for coloring
+                        e.target.className = `raci-select ${value ? roleClasses[value] : ''}`;
+                        
+                        updateSummaryTable();
+                    });
+                    
+                    cell.appendChild(select);
+                    row.appendChild(cell);
+                });
+                
+                table.querySelector('tbody').appendChild(row);
+            });
         }
-
-        columns = generateGridColumns();
-
-        const grid = new gridjs.Grid({
-            columns: columns,
-            data: data,
-            sort: true,
-            search: { enabled: true },
-            pagination: false,
-            resizable: true,
-            language: {
-                'search': { 'placeholder': '🔍 ابحث...' },
-                'pagination': {
-                    'previous': 'السابق', 'next': 'التالي', 'showing': 'عرض',
-                    'to': 'إلى', 'of': 'من', 'results': 'نتائج'
-                },
-                'loading': 'جاري التحميل...',
-                'noRecordsFound': 'لم يتم العثور على نتائج',
-                'error': 'حدث خطأ أثناء جلب البيانات'
-            }
-        }).render(document.getElementById('raci-grid'));
         
+        // Update summary table
         function updateSummaryTable() {
             const summaryGrid = document.getElementById('summary-grid');
             if (!summaryGrid) return;
+            
             summaryGrid.innerHTML = '';
             const summaryData = {};
-
-            columns.slice(1).forEach(col => {
-                summaryData[col.name] = { 'R': [], 'A': [], 'C': [], 'I': [], 'E': [] };
+            
+            // Initialize summary data structure
+            members.forEach(member => {
+                summaryData[member.id] = {
+                    name: member.name,
+                    roles: {
+                        'R': [], 'A': [], 'C': [], 'I': [], 'E': []
+                    }
+                };
             });
-
-            data.forEach(row => {
-                const taskName = row[0];
-                if (!taskName) return;
-                row.slice(1).forEach((role, index) => {
-                    const memberName = columns[index + 1].name;
-                    if (role && summaryData[memberName] && summaryData[memberName][role]) {
-                        summaryData[memberName][role].push(taskName);
+            
+            // Populate summary data
+            tasks.forEach(task => {
+                if (!task.name) return;
+                
+                members.forEach(member => {
+                    const role = assignments[task.id]?.[member.id] || '';
+                    if (role && summaryData[member.id]?.roles[role]) {
+                        summaryData[member.id].roles[role].push(task.name);
                     }
                 });
             });
-
-            for (const memberName in summaryData) {
+            
+            // Render summary cards
+            for (const memberId in summaryData) {
+                const member = summaryData[memberId];
                 const card = document.createElement('article');
                 card.className = 'summary-member-card';
-                let cardHtml = `<h4>${memberName}</h4>`;
+                
+                let cardHtml = `<h4>${member.name}</h4>`;
                 let hasRoles = false;
                 
                 const rolesToDisplay = summaryRoleFilter === 'All' 
-                    ? Object.keys(summaryData[memberName])
+                    ? Object.keys(member.roles)
                     : [summaryRoleFilter];
-
+                
                 for (const role of rolesToDisplay) {
-                    if (!summaryData[memberName][role]) continue;
-                    const tasks = summaryData[memberName][role];
+                    const tasks = member.roles[role];
                     if (tasks.length > 0) {
                         hasRoles = true;
                         cardHtml += `<h5>${raciOptions[role]}</h5><ul>`;
@@ -307,164 +494,116 @@
                         cardHtml += `</ul>`;
                     }
                 }
+                
                 if (!hasRoles) {
                     cardHtml += `<p>لا توجد مهام معينة لهذا العضو بالفلتر المحدد.</p>`;
                 }
+                
                 card.innerHTML = cardHtml;
                 summaryGrid.appendChild(card);
             }
         }
-
+        
+        // Render summary filters
         function renderSummaryFilters() {
             const filtersContainer = document.getElementById('summary-filters');
             if (!filtersContainer) return;
+            
             filtersContainer.innerHTML = '';
             const allRoles = { 'All': 'الكل', ...raciOptions };
             delete allRoles[''];
-
-            for(const roleKey in allRoles) {
+            
+            for (const roleKey in allRoles) {
                 const button = document.createElement('button');
+                button.className = 'btn';
                 button.textContent = allRoles[roleKey];
                 button.dataset.role = roleKey;
-                if(summaryRoleFilter === roleKey) button.classList.add('active');
+                
+                if (summaryRoleFilter === roleKey) {
+                    button.classList.add('active');
+                }
+                
                 button.addEventListener('click', () => {
                     summaryRoleFilter = roleKey;
                     renderSummaryFilters();
                     updateSummaryTable();
                 });
+                
                 filtersContainer.appendChild(button);
             }
         }
-
+        
+        // Add new task
         document.getElementById('addRow').addEventListener('click', () => {
-            const newRow = [`مهمة جديدة ${data.length + 1}`, ...Array(columns.length - 1).fill('')];
-            data.push(newRow);
-            grid.updateConfig({ data: data }).forceRender();
+            const newId = tasks.length > 0 ? Math.max(...tasks.map(t => t.id)) + 1 : 1;
+            tasks.push({ id: newId, name: `مهمة جديدة ${newId}` });
+            assignments[newId] = {};
+            renderRaciTable();
+            updateSummaryTable();
         });
-
+        
+        // Add new member
         document.getElementById('addMember').addEventListener('click', () => {
-            const newMemberIndex = columns.length;
-            const newMemberName = `عضو الفريق ${newMemberIndex}`;
-            const newColumn = {
-                id: `member${newMemberIndex}`,
-                name: newMemberName,
-                sort: true,
-                formatter: (cell, row) => createRaciDropdown(cell, row, newMemberIndex),
-                attributes: (cell, row, col) => {
-                    if (cell && roleClasses[cell]) {
-                        return { 'class': 'gridjs-td ' + roleClasses[cell] };
-                    }
-                }
-            };
-            columns.push(newColumn);
-            data.forEach(row => row.push(''));
-            grid.updateConfig({ columns: columns, data: data }).forceRender();
-        });
-
-        document.getElementById('raci-grid').addEventListener('change', (e) => {
-            if (e.target.classList.contains('raci-select')) {
-                const select = e.target;
-                const rowIndex = parseInt(select.dataset.rowIndex, 10);
-                const cellIndex = parseInt(select.dataset.cellIndex, 10);
-                if (!isNaN(rowIndex) && data[rowIndex]) {
-                    data[rowIndex][cellIndex] = select.value;
-                    grid.forceRender();
-                }
-            }
-        });
-        
-        // Use Grid.js built-in cell editing
-        grid.on('cellEdit', (newValue, row, col) => {
-            const rowIndex = data.findIndex(d => d === row.data);
-            data[rowIndex][0] = newValue;
-            updateSummaryTable();
-        });
-
-        // Custom header editing
-        document.getElementById('raci-grid').addEventListener('dblclick', (e) => {
-            const th = e.target.closest('th.gridjs-th');
-            if (th && !th.querySelector('input')) {
-                const contentDiv = th.querySelector('.gridjs-th-content');
-                if (!contentDiv) return;
-                
-                const colId = th.dataset.columnId;
-                const colIndex = columns.findIndex(c => c.id === colId);
-                if (colIndex === -1 || colIndex === 0) return; // Don't edit task header this way
-
-                const currentName = columns[colIndex].name;
-                contentDiv.innerHTML = `<input class="header-input" value="${currentName}" />`;
-                const input = contentDiv.querySelector('input');
-                input.focus();
-
-                const finishEditing = () => {
-                    const newName = input.value.trim();
-                    columns[colIndex].name = newName || currentName;
-                    grid.updateConfig({ columns: columns }).forceRender();
-                };
-                input.addEventListener('blur', finishEditing);
-                input.addEventListener('keydown', ev => { if (ev.key === 'Enter') ev.target.blur(); });
-            }
-        });
-
-        function onReady() {
-            renderSummaryFilters();
-            updateSummaryTable();
-        }
-
-        grid.on('ready', onReady);
-        grid.on('afterRender', () => {
-            renderSummaryFilters();
+            const newId = members.length > 0 ? Math.max(...members.map(m => m.id)) + 1 : 1;
+            members.push({ id: newId, name: `عضو الفريق ${newId}` });
+            
+            // Add empty assignments for new member
+            tasks.forEach(task => {
+                if (!assignments[task.id]) assignments[task.id] = {};
+                assignments[task.id][newId] = '';
+            });
+            
+            renderRaciTable();
             updateSummaryTable();
         });
         
+        // Export functionality
         const exportModal = document.getElementById('export-modal');
         document.getElementById('show-export-modal').addEventListener('click', () => exportModal.showModal());
         document.getElementById('close-modal').addEventListener('click', () => exportModal.close());
         document.getElementById('export-draft').addEventListener('click', () => exportHTML('draft'));
         document.getElementById('export-final').addEventListener('click', () => exportHTML('final'));
-
+        
         function exportHTML(exportType) {
             exportModal.close();
             const projectName = document.getElementById('projectName').value;
             const title = projectName ? `مخطط RACI - ${projectName}` : 'مخطط RACI التفاعلي';
             
-            const serializableColumns = columns.map(col => ({ id: col.id, name: col.name, width: col.width, sort: col.sort }));
-
             const watermarkText = exportType === 'draft' ? 'مسودة' : 'نهائي';
             const watermarkColor = exportType === 'draft' ? 'rgba(255, 165, 0, 0.2)' : 'rgba(0, 128, 0, 0.2)';
-
-            const exportStyles = `
-                ${document.querySelector('style').innerHTML}
-                body::after {
-                    content: '${watermarkText}';
-                    position: fixed;
-                    top: 50%;
-                    left: 50%;
-                    transform: translate(-50%, -50%) rotate(-45deg);
-                    font-size: 10vw;
-                    color: ${watermarkColor};
-                    pointer-events: none;
-                    z-index: 9999;
-                    font-weight: bold;
-                    opacity: 0.8;
-                }
-                main.container { max-width: none; }
-                .grid-container {
-                    width: 100%;
-                    overflow-x: auto;
-                }
-            `;
-
-            const viewOnlyData = data.map(row => {
-                return row.map((cell, index) => {
-                    if (index === 0) return cell;
-                    return raciOptions[cell] || '';
-                });
+            
+            // Create HTML table for export
+            let tableHtml = `
+                <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+                    <thead>
+                        <tr>
+                            <th style="background-color: #e9ecef; padding: 12px; border: 1px solid #dee2e6; min-width: 250px;">المهمة</th>`;
+            
+            members.forEach(member => {
+                tableHtml += `<th style="background-color: #f1f3f5; padding: 12px; border: 1px solid #dee2e6; min-width: 150px;">${member.name}</th>`;
             });
-
+            
+            tableHtml += `</tr></thead><tbody>`;
+            
+            tasks.forEach(task => {
+                tableHtml += `<tr><td style="padding: 12px; border: 1px solid #dee2e6; text-align: right;">${task.name}</td>`;
+                
+                members.forEach(member => {
+                    const assignment = assignments[task.id]?.[member.id] || '';
+                    const roleName = assignment ? raciOptions[assignment] : '';
+                    const roleClass = assignment ? roleClasses[assignment] : '';
+                    
+                    tableHtml += `<td style="padding: 12px; border: 1px solid #dee2e6; text-align: center; ${roleClass ? `background-color: var(--${roleClass.replace('role-', '')})` : ''}">${roleName}</td>`;
+                });
+                
+                tableHtml += `</tr>`;
+            });
+            
+            tableHtml += `</tbody></table>`;
+            
             const fileContent = `
 <!DOCTYPE html>
-<html lang="ar" dir="rtl" data-theme="light">
+<html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -472,46 +611,70 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://unpkg.com/@picocss/pico@latest/css/pico.min.css">
-    <link href="https://unpkg.com/gridjs/dist/theme/mermaid.min.css" rel="stylesheet" />
-    <style>${exportStyles}</style>
+    <style>
+        :root {
+            --role-r: rgba(85, 150, 200, 0.3);
+            --role-a: rgba(100, 180, 100, 0.3);
+            --role-c: rgba(240, 180, 80, 0.3);
+            --role-i: rgba(180, 180, 180, 0.3);
+            --role-e: rgba(156, 39, 176, 0.2);
+        }
+        
+        body {
+            font-family: 'Cairo', sans-serif;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        
+        .container {
+            max-width: 100%;
+            margin: 0 auto;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+            background-color: white;
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #2c3e50;
+        }
+        
+        .raci-matrix {
+            width: 100%;
+            overflow-x: auto;
+            margin-top: 30px;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        }
+        
+        body::after {
+            content: '${watermarkText}';
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-45deg);
+            font-size: 100px;
+            color: ${watermarkColor};
+            pointer-events: none;
+            z-index: 9999;
+            font-weight: bold;
+            opacity: 0.5;
+        }
+    </style>
 </head>
 <body>
-    <main class="container">
+    <div class="container">
         <h1>${title}</h1>
-        <div id="raci-grid-view" class="grid-container"></div>
-    </main>
-    <script src="https://unpkg.com/gridjs/dist/gridjs.umd.js"><\/script>
-    <script>
-        const viewOnlyData = ${JSON.stringify(viewOnlyData)};
-        const viewOnlyColumns = ${JSON.stringify(serializableColumns)};
-        const roleClasses = ${JSON.stringify(roleClasses)};
-
-        new gridjs.Grid({
-            columns: viewOnlyColumns.map(col => {
-                if(col.id === 'task') return col;
-                return {
-                    name: col.name,
-                    sort: col.sort,
-                    attributes: (cell, row, c) => {
-                        if (row && row.cells && row.cells[c.index]) {
-                            const cellValue = row.cells[c.index].data;
-                            const roleKey = cellValue ? cellValue.charAt(0) : '';
-                            if (roleKey && roleClasses[roleKey]) {
-                                return { 'class': 'gridjs-td ' + roleClasses[roleKey] };
-                            }
-                        }
-                    }
-                }
-            }),
-            data: viewOnlyData,
-            sort: true,
-            pagination: false
-        }).render(document.getElementById('raci-grid-view'));
-    <\/script>
+        <div class="raci-matrix">
+            ${tableHtml}
+        </div>
+    </div>
 </body>
 </html>`;
-
+            
             const blob = new Blob([fileContent.trim()], { type: 'text/html' });
             const link = document.createElement('a');
             link.href = URL.createObjectURL(blob);
@@ -520,6 +683,13 @@
             link.click();
             document.body.removeChild(link);
         }
+        
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', () => {
+            renderRaciTable();
+            renderSummaryFilters();
+            updateSummaryTable();
+        });
     </script>
 </body>
 </html>
