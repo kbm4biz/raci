@@ -659,11 +659,11 @@
     <script>
         const raciOptions = {
             '': 'اختر...',
-            'R': 'R - مسؤول 👤',
-            'A': 'A - مساءل 👑',
-            'C': 'C - مستشار 💬',
-            'I': 'I - مُطّلع 📨',
-            'E': 'E - منفذ 🔨'
+            'R': 'R - مسؤول 👤 (Responsible)',
+            'A': 'A - مساءل 👑 (Accountable)',
+            'C': 'C - مستشار 💬 (Consulted)',
+            'I': 'I - مُطّلع 📨 (Informed)',
+            'E': 'E - منفذ 🔨 (Executor)'
         };
         
         const roleClasses = { 'R': 'role-r', 'A': 'role-a', 'C': 'role-c', 'I': 'role-i', 'E': 'role-e' };
@@ -1080,6 +1080,7 @@
             const watermarkText = exportType === 'draft' ? 'مسودة' : 'نهائي';
             const watermarkColor = exportType === 'draft' ? 'rgba(255, 165, 0, 0.2)' : 'rgba(0, 128, 0, 0.2)';
 
+            // Build Table HTML
             let tableHtml = `<table><thead><tr><th class="task-header-export">المهمة</th>`;
             members.forEach(member => {
                 tableHtml += `<th>${member.name}</th>`;
@@ -1089,14 +1090,24 @@
                 tableHtml += `<tr><td class="task-cell-export">${task.name}</td>`;
                 members.forEach(member => {
                     const assignment = assignments[task.id]?.[member.id] || '';
-                    const roleName = assignment ? raciOptions[assignment].split(' - ')[0] : ''; // Get just the letter
+                    const roleLetter = assignment ? assignment : '';
                     const bgColor = assignment ? `var(--role-${assignment.toLowerCase()})` : 'transparent';
-                    tableHtml += `<td style="background-color: ${bgColor}">${roleName}</td>`;
+                    tableHtml += `<td style="background-color: ${bgColor}">${roleLetter}</td>`;
                 });
                 tableHtml += `</tr>`;
             });
             tableHtml += `</tbody></table>`;
             
+            // Build Legend HTML
+            let legendHtml = `<div class="legend-export"><h3>دليل الأدوار</h3><ul>`;
+            for (const [key, value] of Object.entries(raciOptions)) {
+                if (key) { // Skip the 'اختر...' option
+                     legendHtml += `<li><strong>${key}</strong>: ${value.split(' - ')[1]}</li>`;
+                }
+            }
+            legendHtml += `</ul></div>`;
+
+            // Final File Content
             const fileContent = `
 <!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8"><title>${title}</title>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
@@ -1105,14 +1116,18 @@
 body { font-family: 'Cairo', sans-serif; padding: 20px; background-color: #f8f9fa; }
 .container { max-width: 95%; margin: 0 auto; padding: 20px; border-radius: 15px; box-shadow: 0 8px 30px rgba(0,0,0,0.1); background-color: white; }
 h1 { text-align: center; margin-bottom: 25px; color: #2c3e50; }
-.raci-matrix-export { width: 100%; overflow-x: auto; border: 1px solid #dee2e6; border-radius: 8px; }
+.raci-matrix-export { width: 100%; overflow-x: auto; border: 1px solid #dee2e6; border-radius: 8px; margin-bottom: 25px; }
 table { width: 100%; border-collapse: collapse; }
 th, td { padding: 12px; border: 1px solid #dee2e6; text-align: center; white-space: normal; word-wrap: break-word; }
 th { background-color: #f1f3f5; font-weight: bold; position: sticky; top: 0; z-index: 10; }
 .task-header-export, .task-cell-export { background-color: #e9ecef; font-weight: bold; position: sticky; right: 0; z-index: 15; min-width: 200px; text-align: right; }
 .task-cell-export { font-weight: normal; }
+.legend-export { border-top: 2px solid #e1e5eb; padding-top: 20px; }
+.legend-export h3 { text-align: right; }
+.legend-export ul { list-style-type: none; padding-right: 0; }
+.legend-export li { margin-bottom: 8px; }
 body::after { content: '${watermarkText}'; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-45deg); font-size: 10vw; color: ${watermarkColor}; pointer-events: none; z-index: 9999; font-weight: bold; opacity: 0.5; }
-</style></head><body><div class="container"><h1>${title}</h1><div class="raci-matrix-export">${tableHtml}</div></div></body></html>`;
+</style></head><body><div class="container"><h1>${title}</h1><div class="raci-matrix-export">${tableHtml}</div>${legendHtml}</div></body></html>`;
             
             const blob = new Blob([fileContent.trim()], { type: 'text/html' });
             const link = document.createElement('a');
@@ -1158,7 +1173,7 @@ body::after { content: '${watermarkText}'; position: fixed; top: 50%; left: 50%;
             });
             Array.from(tableClone.querySelectorAll('select.raci-select')).forEach(select => {
                 const parent = select.parentElement;
-                parent.textContent = select.options[select.selectedIndex].text.split(' - ')[0];
+                parent.textContent = select.value; // Just the letter
             });
 
             Array.from(tableClone.querySelectorAll('th, td')).forEach(cell => {
